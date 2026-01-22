@@ -335,7 +335,8 @@ export default function HomePage() {
 
       return { success: false, error: "Invalid component type" };
     },
-    render: ({ args, result }) => {
+    render: ({ args, status, result }) => {
+      console.log(" === render ===", { args, status, result });
       return (<h1>Loading component...</h1>)
       return (
         <div style={{ padding: "16px", background: "#f0f9ff", borderRadius: "8px", border: "2px solid #3b82f6" }}>

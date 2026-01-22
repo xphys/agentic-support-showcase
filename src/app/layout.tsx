@@ -1,11 +1,8 @@
 import "@mantine/core/styles.css";
 import "@copilotkit/react-ui/styles.css";
+import "./globals.css";
 
-import {
-  MantineProvider,
-  ColorSchemeScript,
-  mantineHtmlProps,
-} from "@mantine/core";
+import { ColorSchemeScript, mantineHtmlProps, MantineProvider } from "@mantine/core";
 import { theme } from "../../theme";
 import { CopilotKit } from "@copilotkit/react-core";
 

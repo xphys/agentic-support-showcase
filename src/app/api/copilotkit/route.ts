@@ -1,8 +1,4 @@
-import {
-  CopilotRuntime,
-  ExperimentalEmptyAdapter,
-  copilotRuntimeNextJSAppRouterEndpoint,
-} from "@copilotkit/runtime";
+import { CopilotRuntime, copilotRuntimeNextJSAppRouterEndpoint, ExperimentalEmptyAdapter } from "@copilotkit/runtime";
 import { LangGraphAgent } from "@copilotkit/runtime/langgraph";
 import { NextRequest } from "next/server";
 
@@ -15,8 +11,7 @@ const serviceAdapter = new ExperimentalEmptyAdapter();
 const runtime = new CopilotRuntime({
   agents: {
     sample_agent: new LangGraphAgent({
-      deploymentUrl:
-        process.env.LANGGRAPH_DEPLOYMENT_URL || "http://localhost:8123",
+      deploymentUrl: process.env.LANGGRAPH_DEPLOYMENT_URL || "http://localhost:8123",
       graphId: "sample_agent",
       langsmithApiKey: process.env.LANGSMITH_API_KEY || "",
     }),

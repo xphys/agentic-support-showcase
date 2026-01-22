@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export interface FullScreenModalProps {
   /** Whether the modal is open */
@@ -14,6 +15,13 @@ export interface FullScreenModalProps {
 }
 
 const FullScreenModal = ({ isOpen, onClose, children, title }: FullScreenModalProps) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   // Handle escape key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -34,9 +42,9 @@ const FullScreenModal = ({ isOpen, onClose, children, title }: FullScreenModalPr
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  const modalContent = (
     <div className="fullscreen-modal-overlay" onClick={onClose}>
       <div className="fullscreen-modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="fullscreen-modal-header">
@@ -63,7 +71,7 @@ const FullScreenModal = ({ isOpen, onClose, children, title }: FullScreenModalPr
           right: 0;
           bottom: 0;
           background: rgba(0, 0, 0, 0.75);
-          z-index: 999999;
+          z-index: 2147483647;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -197,6 +205,8 @@ const FullScreenModal = ({ isOpen, onClose, children, title }: FullScreenModalPr
       </style>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default FullScreenModal;

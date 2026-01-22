@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import styles from './GenericList.module.css';
 
 export interface ListColumn<T = any> {
   /** Unique key for the column */
@@ -49,6 +50,8 @@ export interface GenericListProps<T = any> {
   emptyMessage?: string;
   /** Additional CSS class */
   className?: string;
+  /** Optional render function for item details view */
+  renderItemView?: (item: T, onBack: () => void) => React.ReactNode;
 }
 
 const GenericList = <T extends Record<string, any>>({
@@ -59,10 +62,12 @@ const GenericList = <T extends Record<string, any>>({
   layout = 'grid',
   emptyMessage = 'No items to display',
   className = '',
+  renderItemView,
 }: GenericListProps<T>) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedItem, setSelectedItem] = useState<T | null>(null);
 
   // Filter items based on search
   const filteredItems = useMemo(() => {
@@ -120,32 +125,55 @@ const GenericList = <T extends Record<string, any>>({
     }
   };
 
+  const handleItemClick = (item: T) => {
+    if (renderItemView) {
+      // Internal navigation - show item view within the component
+      setSelectedItem(item);
+    } else if (config.onItemClick) {
+      // External navigation - use the provided click handler
+      config.onItemClick(item);
+    }
+  };
+
+  const handleBackToList = () => {
+    setSelectedItem(null);
+  };
+
+  // If an item is selected and we have a render function, show the item view
+  if (selectedItem && renderItemView) {
+    return (
+      <div className={`${styles.genericList} ${className}`}>
+        {renderItemView(selectedItem, handleBackToList)}
+      </div>
+    );
+  }
+
   const renderGridLayout = () => (
-    <div className="generic-list-grid">
+    <div className={styles.genericListGrid}>
       {sortedItems.map((item, index) => {
         const status = config.getItemStatus?.(item);
         return (
           <div
             key={config.getItemKey(item)}
-            className={`generic-list-card ${config.onItemClick ? 'clickable' : ''}`}
-            onClick={() => config.onItemClick?.(item)}
+            className={`${styles.genericListCard} ${(config.onItemClick || renderItemView) ? styles.clickable : ''}`}
+            onClick={() => handleItemClick(item)}
           >
             {config.showNumbers && (
-              <div className="item-number">{index + 1}</div>
+              <div className={styles.itemNumber}>{index + 1}</div>
             )}
-            <div className="card-content">
+            <div className={styles.cardContent}>
               {config.columns.map((column) => {
                 const value = column.getValue(item);
                 const rendered = column.render ? column.render(value, item) : value;
                 return (
-                  <div key={column.key} className="card-field">
+                  <div key={column.key} className={styles.cardField}>
                     <label>{column.label}</label>
-                    <div className="card-value">{rendered}</div>
+                    <div className={styles.cardValue}>{rendered}</div>
                   </div>
                 );
               })}
               {status && (
-                <span className="item-status" style={{ background: status.color }}>
+                <span className={styles.itemStatus} style={{ background: status.color }}>
                   {status.label}
                 </span>
               )}
@@ -157,8 +185,8 @@ const GenericList = <T extends Record<string, any>>({
   );
 
   const renderTableLayout = () => (
-    <div className="generic-list-table-container">
-      <table className="generic-list-table">
+    <div className={styles.genericListTableContainer}>
+      <table className={styles.genericListTable}>
         <thead>
           <tr>
             {config.showNumbers && <th style={{ width: '60px' }}>#</th>}
@@ -166,13 +194,13 @@ const GenericList = <T extends Record<string, any>>({
               <th
                 key={column.key}
                 style={{ width: column.width }}
-                className={column.sortable ? 'sortable' : ''}
+                className={column.sortable ? styles.sortable : ''}
                 onClick={() => handleSort(column.key)}
               >
-                <div className="th-content">
+                <div className={styles.thContent}>
                   {column.label}
                   {column.sortable && sortColumn === column.key && (
-                    <span className="sort-indicator">
+                    <span className={styles.sortIndicator}>
                       {sortDirection === 'asc' ? '↑' : '↓'}
                     </span>
                   )}
@@ -188,8 +216,8 @@ const GenericList = <T extends Record<string, any>>({
             return (
               <tr
                 key={config.getItemKey(item)}
-                className={config.onItemClick ? 'clickable' : ''}
-                onClick={() => config.onItemClick?.(item)}
+                className={(config.onItemClick || renderItemView) ? styles.clickable : ''}
+                onClick={() => handleItemClick(item)}
               >
                 {config.showNumbers && <td>{index + 1}</td>}
                 {config.columns.map((column) => {
@@ -199,7 +227,7 @@ const GenericList = <T extends Record<string, any>>({
                 })}
                 {config.getItemStatus && status && (
                   <td>
-                    <span className="item-status" style={{ background: status.color }}>
+                    <span className={styles.itemStatus} style={{ background: status.color }}>
                       {status.label}
                     </span>
                   </td>
@@ -213,32 +241,32 @@ const GenericList = <T extends Record<string, any>>({
   );
 
   const renderListLayout = () => (
-    <div className="generic-list-items">
+    <div className={styles.genericListItems}>
       {sortedItems.map((item, index) => {
         const status = config.getItemStatus?.(item);
         return (
           <div
             key={config.getItemKey(item)}
-            className={`generic-list-item ${config.onItemClick ? 'clickable' : ''}`}
-            onClick={() => config.onItemClick?.(item)}
+            className={`${styles.genericListItem} ${(config.onItemClick || renderItemView) ? styles.clickable : ''}`}
+            onClick={() => handleItemClick(item)}
           >
             {config.showNumbers && (
-              <div className="item-number">{index + 1}</div>
+              <div className={styles.itemNumber}>{index + 1}</div>
             )}
-            <div className="item-content">
+            <div className={styles.itemContent}>
               {config.columns.map((column) => {
                 const value = column.getValue(item);
                 const rendered = column.render ? column.render(value, item) : value;
                 return (
-                  <div key={column.key} className="item-field">
-                    <span className="field-label">{column.label}:</span>
-                    <span className="field-value">{rendered}</span>
+                  <div key={column.key} className={styles.itemField}>
+                    <span className={styles.fieldLabel}>{column.label}:</span>
+                    <span className={styles.fieldValue}>{rendered}</span>
                   </div>
                 );
               })}
             </div>
             {status && (
-              <span className="item-status" style={{ background: status.color }}>
+              <span className={styles.itemStatus} style={{ background: status.color }}>
                 {status.label}
               </span>
             )}
@@ -249,33 +277,33 @@ const GenericList = <T extends Record<string, any>>({
   );
 
   return (
-    <div className={`generic-list ${className}`}>
+    <div className={`${styles.genericList} ${className}`}>
       {(title || description) && (
-        <div className="generic-list-header">
+        <div className={styles.genericListHeader}>
           {title && <h3>{title}</h3>}
-          {description && <p className="description">{description}</p>}
+          {description && <p className={styles.description}>{description}</p>}
         </div>
       )}
 
       {config.searchable && (
-        <div className="search-box">
+        <div className={styles.searchBox}>
           <input
             type="text"
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
+            className={styles.searchInput}
           />
-          <span className="search-icon">🔍</span>
+          <span className={styles.searchIcon}>🔍</span>
         </div>
       )}
 
-      <div className="items-count">
+      <div className={styles.itemsCount}>
         {sortedItems.length} {sortedItems.length === 1 ? 'item' : 'items'}
       </div>
 
       {sortedItems.length === 0 ? (
-        <div className="empty-state">{emptyMessage}</div>
+        <div className={styles.emptyState}>{emptyMessage}</div>
       ) : (
         <>
           {layout === 'grid' && renderGridLayout()}
@@ -283,269 +311,6 @@ const GenericList = <T extends Record<string, any>>({
           {layout === 'list' && renderListLayout()}
         </>
       )}
-
-      <style jsx>{`
-        .generic-list {
-          width: 100%;
-        }
-
-        .generic-list-header {
-          margin-bottom: 24px;
-        }
-
-        .generic-list-header h3 {
-          margin: 0 0 8px 0;
-          font-size: 1.5rem;
-          color: #1f2937;
-        }
-
-        .description {
-          margin: 0;
-          color: #6b7280;
-          font-size: 0.875rem;
-        }
-
-        .search-box {
-          position: relative;
-          margin-bottom: 16px;
-        }
-
-        .search-input {
-          width: 100%;
-          padding: 10px 40px 10px 16px;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 0.95rem;
-          transition: all 0.2s ease;
-        }
-
-        .search-input:focus {
-          outline: none;
-          border-color: #667eea;
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .search-icon {
-          position: absolute;
-          right: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          pointer-events: none;
-        }
-
-        .items-count {
-          margin-bottom: 16px;
-          color: #6b7280;
-          font-size: 0.875rem;
-          font-weight: 500;
-        }
-
-        .empty-state {
-          text-align: center;
-          padding: 48px 24px;
-          color: #9ca3af;
-          font-size: 1rem;
-        }
-
-        /* Grid Layout */
-        .generic-list-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 16px;
-        }
-
-        .generic-list-card {
-          background: #f9fafb;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 16px;
-          transition: all 0.2s ease;
-          position: relative;
-        }
-
-        .generic-list-card.clickable {
-          cursor: pointer;
-        }
-
-        .generic-list-card.clickable:hover {
-          background: #f3f4f6;
-          border-color: #d1d5db;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-content {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .card-field label {
-          display: block;
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: 4px;
-        }
-
-        .card-value {
-          font-size: 0.95rem;
-          color: #1f2937;
-          word-break: break-word;
-        }
-
-        /* Table Layout */
-        .generic-list-table-container {
-          overflow-x: auto;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-        }
-
-        .generic-list-table {
-          width: 100%;
-          border-collapse: collapse;
-          background: white;
-        }
-
-        .generic-list-table thead {
-          background: #f9fafb;
-          border-bottom: 2px solid #e5e7eb;
-        }
-
-        .generic-list-table th {
-          padding: 12px 16px;
-          text-align: left;
-          font-weight: 600;
-          font-size: 0.875rem;
-          color: #374151;
-        }
-
-        .generic-list-table th.sortable {
-          cursor: pointer;
-          user-select: none;
-        }
-
-        .generic-list-table th.sortable:hover {
-          background: #f3f4f6;
-        }
-
-        .th-content {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .sort-indicator {
-          font-size: 1rem;
-        }
-
-        .generic-list-table tbody tr {
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .generic-list-table tbody tr.clickable {
-          cursor: pointer;
-        }
-
-        .generic-list-table tbody tr.clickable:hover {
-          background: #f9fafb;
-        }
-
-        .generic-list-table td {
-          padding: 12px 16px;
-          font-size: 0.875rem;
-          color: #1f2937;
-        }
-
-        /* List Layout */
-        .generic-list-items {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .generic-list-item {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          padding: 16px;
-          background: #f9fafb;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          transition: all 0.2s ease;
-        }
-
-        .generic-list-item.clickable {
-          cursor: pointer;
-        }
-
-        .generic-list-item.clickable:hover {
-          background: #f3f4f6;
-          border-color: #d1d5db;
-          transform: translateX(4px);
-        }
-
-        .item-number {
-          flex-shrink: 0;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 600;
-          font-size: 0.875rem;
-        }
-
-        .item-content {
-          flex: 1;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 16px;
-        }
-
-        .item-field {
-          display: flex;
-          gap: 8px;
-          align-items: baseline;
-        }
-
-        .field-label {
-          font-weight: 600;
-          color: #6b7280;
-          font-size: 0.875rem;
-        }
-
-        .field-value {
-          color: #1f2937;
-          font-size: 0.875rem;
-        }
-
-        .item-status {
-          flex-shrink: 0;
-          padding: 4px 12px;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: white;
-          text-transform: uppercase;
-        }
-
-        @media (max-width: 768px) {
-          .generic-list-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .item-content {
-            flex-direction: column;
-            gap: 8px;
-          }
-        }
-      `}</style>
     </div>
   );
 };

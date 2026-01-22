@@ -20,7 +20,7 @@ interface DisplayState {
 }
 
 export default function HomePage() {
-  const [animationType, setAnimationType] = useState<AnimationType>("fade");
+  const [animationType, setAnimationType] = useState<AnimationType>("scale");
   const [displayState, setDisplayState] = useState<DisplayState>({
     component: (
       <div style={{ padding: "2rem", textAlign: "center", color: "#6b7280" }}>
@@ -209,12 +209,31 @@ export default function HomePage() {
     };
 
     const config = getListConfig(dataType, handleItemClick);
+
+    // Get configuration for rendering items
+    const fields = getItemFields(dataType);
+    const getActions = getItemActions(dataType);
+    const getTitle = getItemTitle(dataType);
+    const getSubtitle = getItemSubtitle(dataType);
+
     const component = (
       <GenericListWithData
         dataType={dataType}
         config={config}
         title={titles.list}
         layout={layout as any || "table"}
+        renderItemView={(item, onBack) => (
+          <GenericItemWithData
+            dataType={dataType}
+            itemId={config.getItemKey(item)}
+            fields={fields}
+            getTitle={getTitle}
+            getSubtitle={getSubtitle}
+            getActions={getActions}
+            layout={layout as any || "panel"}
+            onBack={onBack}
+          />
+        )}
       />
     );
 

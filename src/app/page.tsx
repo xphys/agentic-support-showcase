@@ -5,18 +5,18 @@ import { useFrontendTool } from "@copilotkit/react-core";
 import { Container, Grid } from "@mantine/core";
 import { useState } from "react";
 import DynamicComponentWindow from "./components/DynamicComponentWindow";
-import GenericList, { ListColumn, ListConfig } from "./components/GenericList";
+import GenericListWithData, { ListConfig } from "./components/GenericListWithData";
+import GenericItemWithData, { ItemAction, ItemField } from "./components/GenericItemWithData";
 import GenericForm, { FormField } from "./components/GenericForm";
-import GenericItem, { ItemAction, ItemField } from "./components/GenericItem";
+import { DataType } from "./actions/dataActions";
 
 type AnimationType = "fade" | "slide" | "scale" | "flip";
 type ComponentType = "list" | "form" | "item" | "demo";
-type DataType = "products" | "users" | "employees" | "orders" | "custom";
 
 interface DisplayState {
   component: React.ReactNode;
   type: ComponentType;
-  dataType: DataType;
+  dataType: DataType | "custom";
 }
 
 export default function HomePage() {
@@ -25,156 +25,24 @@ export default function HomePage() {
     component: (
       <div style={{ padding: "2rem", textAlign: "center", color: "#6b7280" }}>
         <h2>Ask the AI to show you different components!</h2>
-        <p style={{ marginTop: "1rem" }}>Try: "Show me a product list" or "Display a user form"</p>
+        <p style={{ marginTop: "1rem" }}>
+          Try: "Show me products" or "Display user list" or "Show me order #1001"
+        </p>
       </div>
     ),
     type: "demo",
     dataType: "products",
   });
 
-  // State to track current list items for navigation
-  const [currentListData, setCurrentListData] = useState<
-    {
-      items: any[];
-      dataType: DataType;
-      layout?: string;
-    } | null
-  >(null);
-
-  // Mockup data generators
-  const generateMockProducts = () => [
-    { id: 1, name: "Laptop Pro 15", category: "Electronics", price: 1299.99, stock: 45, inStock: true, rating: 4.5 },
-    { id: 2, name: "Wireless Mouse", category: "Accessories", price: 29.99, stock: 8, inStock: true, rating: 4.2 },
-    { id: 3, name: "USB-C Hub", category: "Accessories", price: 49.99, stock: 0, inStock: false, rating: 4.7 },
-    { id: 4, name: "4K Monitor", category: "Electronics", price: 399.99, stock: 23, inStock: true, rating: 4.8 },
-    { id: 5, name: "Mechanical Keyboard", category: "Accessories", price: 149.99, stock: 15, inStock: true, rating: 4.6 },
-  ];
-
-  const generateMockUsers = () => [
-    { id: 1, firstName: "John", lastName: "Doe", email: "john.doe@example.com", role: "Admin", department: "IT", active: true, joinDate: "2023-01-15" },
-    { id: 2, firstName: "Jane", lastName: "Smith", email: "jane.smith@example.com", role: "Manager", department: "Sales", active: true, joinDate: "2023-03-20" },
-    { id: 3, firstName: "Bob", lastName: "Johnson", email: "bob.johnson@example.com", role: "Developer", department: "Engineering", active: true, joinDate: "2022-11-05" },
-    { id: 4, firstName: "Alice", lastName: "Williams", email: "alice.williams@example.com", role: "Designer", department: "Marketing", active: false, joinDate: "2023-06-10" },
-  ];
-
-  const generateMockEmployees = () => [
-    { id: 1, name: "Sarah Connor", position: "CEO", salary: 250000, experience: 15, status: "active" },
-    { id: 2, name: "Kyle Reese", position: "CTO", salary: 200000, experience: 12, status: "active" },
-    { id: 3, name: "John Connor", position: "Lead Developer", salary: 150000, experience: 8, status: "active" },
-    { id: 4, name: "Ellen Ripley", position: "Security Lead", salary: 140000, experience: 10, status: "vacation" },
-  ];
-
-  const generateMockOrders = () => [
-    { id: 1001, customer: "Acme Corp", product: "Enterprise License", amount: 5999.99, status: "completed", date: "2024-01-15" },
-    { id: 1002, customer: "TechStart Inc", product: "Starter Package", amount: 999.99, status: "pending", date: "2024-01-18" },
-    { id: 1003, customer: "Global Systems", product: "Premium Support", amount: 2499.99, status: "processing", date: "2024-01-20" },
-    { id: 1004, customer: "Innovation Labs", product: "Custom Solution", amount: 12999.99, status: "completed", date: "2024-01-22" },
-  ];
-
-  // Helper function to show item detail
-  const showItemDetail = (
-    item: any,
-    dataType: DataType,
-    layout?: string,
-    backToList?: { items: any[]; dataType: DataType; layout?: string },
-  ) => {
-    let fields: ItemField<any>[] = [];
-    let actions: ItemAction[] = [];
-    let title = "";
-    let subtitle = "";
-
+  // Config generators for different data types
+  const getListConfig = (dataType: DataType, handleItemClick: (itemId: string | number) => void): ListConfig<any> => {
     switch (dataType) {
       case "products":
-        title = item.name;
-        fields = [
-          { key: "name", label: "Product Name", getValue: (i) => i.name, highlight: true, span: 2 },
-          { key: "category", label: "Category", getValue: (i) => i.category, section: "Basic Info" },
-          { key: "price", label: "Price", getValue: (i) => i.price, render: (v) => `$${v.toFixed(2)}`, section: "Basic Info" },
-          { key: "stock", label: "Stock", getValue: (i) => i.stock, section: "Inventory" },
-          { key: "rating", label: "Rating", getValue: (i) => i.rating, render: (v) => `${v} / 5 ⭐`, section: "Reviews" },
-        ];
-        actions = [
-          { label: "Edit", icon: "✏️", variant: "primary", onClick: () => alert("Edit product") },
-          { label: "Delete", icon: "🗑️", variant: "danger", onClick: () => alert("Delete product") },
-        ];
-        break;
-
-      case "users":
-        title = `${item.firstName} ${item.lastName}`;
-        subtitle = item.role;
-        fields = [
-          { key: "name", label: "Full Name", getValue: (i) => `${i.firstName} ${i.lastName}`, highlight: true, span: 2 },
-          { key: "email", label: "Email", getValue: (i) => i.email, section: "Contact" },
-          { key: "role", label: "Role", getValue: (i) => i.role, badge: true, badgeColor: "#667eea", section: "Work Info" },
-          { key: "department", label: "Department", getValue: (i) => i.department, section: "Work Info" },
-          { key: "joinDate", label: "Join Date", getValue: (i) => i.joinDate, render: (v) => new Date(v).toLocaleDateString(), section: "Work Info" },
-        ];
-        actions = [
-          { label: "Edit Profile", icon: "✏️", variant: "primary", onClick: () => alert("Edit user") },
-          { label: "Reset Password", icon: "🔑", variant: "secondary", onClick: () => alert("Reset password") },
-        ];
-        break;
-
-      case "employees":
-        title = item.name;
-        subtitle = item.position;
-        fields = [
-          { key: "name", label: "Name", getValue: (i) => i.name, highlight: true, span: 2 },
-          { key: "position", label: "Position", getValue: (i) => i.position, section: "Position" },
-          { key: "salary", label: "Salary", getValue: (i) => i.salary, render: (v) => `$${v.toLocaleString()}`, section: "Compensation" },
-          { key: "experience", label: "Experience", getValue: (i) => i.experience, render: (v) => `${v} years`, section: "Experience" },
-        ];
-        break;
-
-      case "orders":
-        title = `Order #${item.id}`;
-        fields = [
-          { key: "id", label: "Order ID", getValue: (i) => `#${i.id}`, highlight: true },
-          { key: "customer", label: "Customer", getValue: (i) => i.customer, section: "Details" },
-          { key: "product", label: "Product", getValue: (i) => i.product, section: "Details" },
-          { key: "amount", label: "Amount", getValue: (i) => i.amount, render: (v) => `$${v.toFixed(2)}`, section: "Payment" },
-          { key: "date", label: "Date", getValue: (i) => i.date, section: "Timeline" },
-        ];
-        break;
-    }
-
-    const component = (
-      <GenericItem
-        item={item}
-        fields={fields}
-        title={title}
-        subtitle={subtitle}
-        actions={actions}
-        layout={layout as any || "panel"}
-        onBack={backToList
-          ? () => {
-            // Navigate back to the list
-            generateList(backToList.items, backToList.dataType, backToList.layout);
-          }
-          : undefined}
-      />
-    );
-
-    setDisplayState({ component, type: "item", dataType });
-  };
-
-  // Helper function to generate list with item click handler
-  const generateList = (items: any[], dataType: DataType, layout?: string) => {
-    let config: ListConfig<any>;
-    let title = "";
-
-    const handleItemClick = (item: any) => {
-      showItemDetail(item, dataType, layout, { items, dataType, layout });
-    };
-
-    switch (dataType) {
-      case "products":
-        title = "Product Catalog";
-        config = {
+        return {
           columns: [
             { key: "name", label: "Product", getValue: (i) => i.name, sortable: true },
             { key: "category", label: "Category", getValue: (i) => i.category, sortable: true },
-            { key: "price", label: "Price", getValue: (i) => i.price, render: (v) => `$${v.toFixed(2)}`, sortable: true },
+            { key: "price", label: "Price", getValue: (i) => i.price, render: (v) => v != null ? `$${v.toFixed(2)}` : "N/A", sortable: true },
             { key: "stock", label: "Stock", getValue: (i) => i.stock, sortable: true },
           ],
           getItemKey: (i) => i.id,
@@ -184,11 +52,9 @@ export default function HomePage() {
           showNumbers: true,
           onItemClick: handleItemClick,
         };
-        break;
 
       case "users":
-        title = "User Directory";
-        config = {
+        return {
           columns: [
             { key: "name", label: "Name", getValue: (i) => `${i.firstName} ${i.lastName}`, sortable: true },
             { key: "email", label: "Email", getValue: (i) => i.email },
@@ -201,32 +67,28 @@ export default function HomePage() {
           showNumbers: true,
           onItemClick: handleItemClick,
         };
-        break;
 
       case "employees":
-        title = "Employee Directory";
-        config = {
+        return {
           columns: [
             { key: "name", label: "Name", getValue: (i) => i.name, sortable: true },
             { key: "position", label: "Position", getValue: (i) => i.position, sortable: true },
-            { key: "salary", label: "Salary", getValue: (i) => i.salary, render: (v) => `$${v.toLocaleString()}`, sortable: true },
-            { key: "experience", label: "Experience", getValue: (i) => i.experience, render: (v) => `${v} years`, sortable: true },
+            { key: "salary", label: "Salary", getValue: (i) => i.salary, render: (v) => v != null ? `$${v.toLocaleString()}` : "N/A", sortable: true },
+            { key: "experience", label: "Experience", getValue: (i) => i.experience, render: (v) => v != null ? `${v} years` : "N/A", sortable: true },
           ],
           getItemKey: (i) => i.id,
           getItemStatus: (i) => ({ label: i.status, color: i.status === "active" ? "#10b981" : "#f59e0b" }),
           searchable: true,
           onItemClick: handleItemClick,
         };
-        break;
 
       case "orders":
-        title = "Order Management";
-        config = {
+        return {
           columns: [
             { key: "id", label: "Order ID", getValue: (i) => i.id, sortable: true },
             { key: "customer", label: "Customer", getValue: (i) => i.customer, sortable: true },
             { key: "product", label: "Product", getValue: (i) => i.product },
-            { key: "amount", label: "Amount", getValue: (i) => i.amount, render: (v) => `$${v.toFixed(2)}`, sortable: true },
+            { key: "amount", label: "Amount", getValue: (i) => i.amount, render: (v) => v != null ? `$${v.toFixed(2)}` : "N/A", sortable: true },
             { key: "date", label: "Date", getValue: (i) => i.date, sortable: true },
           ],
           getItemKey: (i) => i.id,
@@ -237,32 +99,183 @@ export default function HomePage() {
           searchable: true,
           onItemClick: handleItemClick,
         };
-        break;
-
-      default:
-        return;
     }
+  };
 
-    const component = <GenericList items={items} config={config} title={title} layout={layout as any || "table"} />;
+  const getItemFields = (dataType: DataType): ItemField<any>[] => {
+    switch (dataType) {
+      case "products":
+        return [
+          { key: "name", label: "Product Name", getValue: (i) => i.name, highlight: true, span: 2 },
+          { key: "category", label: "Category", getValue: (i) => i.category, section: "Basic Info" },
+          { key: "price", label: "Price", getValue: (i) => i.price, render: (v) => v != null ? `$${v.toFixed(2)}` : "N/A", section: "Basic Info" },
+          { key: "stock", label: "Stock", getValue: (i) => i.stock, section: "Inventory" },
+          { key: "rating", label: "Rating", getValue: (i) => i.rating, render: (v) => v != null ? `${v} / 5 ⭐` : "N/A", section: "Reviews" },
+        ];
+
+      case "users":
+        return [
+          { key: "name", label: "Full Name", getValue: (i) => `${i.firstName} ${i.lastName}`, highlight: true, span: 2 },
+          { key: "email", label: "Email", getValue: (i) => i.email, section: "Contact" },
+          { key: "role", label: "Role", getValue: (i) => i.role, badge: true, badgeColor: "#667eea", section: "Work Info" },
+          { key: "department", label: "Department", getValue: (i) => i.department, section: "Work Info" },
+          { key: "joinDate", label: "Join Date", getValue: (i) => i.joinDate, render: (v) => v ? new Date(v).toLocaleDateString() : "N/A", section: "Work Info" },
+        ];
+
+      case "employees":
+        return [
+          { key: "name", label: "Name", getValue: (i) => i.name, highlight: true, span: 2 },
+          { key: "position", label: "Position", getValue: (i) => i.position, section: "Position" },
+          { key: "salary", label: "Salary", getValue: (i) => i.salary, render: (v) => v != null ? `$${v.toLocaleString()}` : "N/A", section: "Compensation" },
+          { key: "experience", label: "Experience", getValue: (i) => i.experience, render: (v) => v != null ? `${v} years` : "N/A", section: "Experience" },
+        ];
+
+      case "orders":
+        return [
+          { key: "id", label: "Order ID", getValue: (i) => `#${i.id}`, highlight: true },
+          { key: "customer", label: "Customer", getValue: (i) => i.customer, section: "Details" },
+          { key: "product", label: "Product", getValue: (i) => i.product, section: "Details" },
+          { key: "amount", label: "Amount", getValue: (i) => i.amount, render: (v) => v != null ? `$${v.toFixed(2)}` : "N/A", section: "Payment" },
+          { key: "date", label: "Date", getValue: (i) => i.date, section: "Timeline" },
+        ];
+    }
+  };
+
+  const getItemActions = (dataType: DataType): (item: any) => ItemAction[] => {
+    switch (dataType) {
+      case "products":
+        return () => [
+          { label: "Edit", icon: "✏️", variant: "primary", onClick: () => alert("Edit product") },
+          { label: "Delete", icon: "🗑️", variant: "danger", onClick: () => alert("Delete product") },
+        ];
+
+      case "users":
+        return () => [
+          { label: "Edit Profile", icon: "✏️", variant: "primary", onClick: () => alert("Edit user") },
+          { label: "Reset Password", icon: "🔑", variant: "secondary", onClick: () => alert("Reset password") },
+        ];
+
+      case "employees":
+      case "orders":
+        return () => [];
+    }
+  };
+
+  const getItemTitle = (dataType: DataType): (item: any) => string => {
+    switch (dataType) {
+      case "products":
+        return (item) => item.name;
+      case "users":
+        return (item) => `${item.firstName} ${item.lastName}`;
+      case "employees":
+        return (item) => item.name;
+      case "orders":
+        return (item) => `Order #${item.id}`;
+    }
+  };
+
+  const getItemSubtitle = (dataType: DataType): ((item: any) => string) | undefined => {
+    switch (dataType) {
+      case "users":
+        return (item) => item.role;
+      case "employees":
+        return (item) => item.position;
+      default:
+        return undefined;
+    }
+  };
+
+  const getTitles = (dataType: DataType) => {
+    switch (dataType) {
+      case "products":
+        return { list: "Product Catalog", form: "Add New Product" };
+      case "users":
+        return { list: "User Directory", form: "Create User Account" };
+      case "employees":
+        return { list: "Employee Directory", form: "Add Employee" };
+      case "orders":
+        return { list: "Order Management", form: "Create Order" };
+    }
+  };
+
+  // Show list
+  const showList = (dataType: DataType, layout?: string) => {
+    const titles = getTitles(dataType);
+
+    const handleItemClick = (itemId: string | number) => {
+      console.log("[page.tsx] handleItemClick - dataType:", dataType, "itemId:", itemId, "type:", typeof itemId);
+      // Show item detail with back navigation data
+      showItem(dataType, itemId, layout, { dataType, layout });
+    };
+
+    const config = getListConfig(dataType, handleItemClick);
+    const component = (
+      <GenericListWithData
+        dataType={dataType}
+        config={config}
+        title={titles.list}
+        layout={layout as any || "table"}
+      />
+    );
+
     setDisplayState({ component, type: "list", dataType });
-    setCurrentListData({ items, dataType, layout });
+  };
+
+  // Show item detail
+  const showItem = (
+    dataType: DataType,
+    itemId: string | number,
+    layout?: string,
+    backToList?: { dataType: DataType; layout?: string },
+  ) => {
+    const fields = getItemFields(dataType);
+    const getActions = getItemActions(dataType);
+    const getTitle = getItemTitle(dataType);
+    const getSubtitle = getItemSubtitle(dataType);
+
+    const component = (
+      <GenericItemWithData
+        dataType={dataType}
+        itemId={itemId}
+        fields={fields}
+        getTitle={getTitle}
+        getSubtitle={getSubtitle}
+        getActions={getActions}
+        layout={layout as any || "panel"}
+        onBack={backToList
+          ? () => {
+            // Navigate back to the list
+            showList(backToList.dataType, backToList.layout);
+          }
+          : undefined}
+      />
+    );
+
+    setDisplayState({ component, type: "item", dataType });
   };
 
   useFrontendTool({
     name: "displayComponent",
-    description: "Display a generic component (list, form, or item detail) with mockup data. Use this to show the user different data visualizations and forms.",
+    description:
+      "Display a generic component (list, form, or item detail). Use this when the user wants to view or manage data. AI extracts parameters from conversation but does NOT provide actual data.",
     parameters: [
       {
         name: "componentType",
         type: "string",
-        description: "Type of component to display: 'list' (data table/grid), 'form' (input form), or 'item' (detail view)",
+        description: "Type of component to display: 'list' (show multiple items), 'form' (create new item), or 'item' (show single item detail)",
         required: true,
       },
       {
         name: "dataType",
         type: "string",
-        description: "Type of data to display: 'products', 'users', 'employees', 'orders'",
+        description: "Type of data: 'products', 'users', 'employees', 'orders'",
         required: true,
+      },
+      {
+        name: "itemId",
+        type: "string",
+        description: "Item ID for 'item' component type (e.g., '1', '1001'). Only required when componentType is 'item'.",
+        required: false,
       },
       {
         name: "layout",
@@ -271,40 +284,32 @@ export default function HomePage() {
         required: false,
       },
     ],
-    async handler({ componentType, dataType, layout }) {
-      console.log(" === handler ===");
+    async handler({ componentType, dataType, itemId, layout }) {
+      console.log(" === handler ===", { componentType, dataType, itemId, layout });
 
       const compType = componentType as ComponentType;
       const dType = dataType as DataType;
 
-      let component: React.ReactNode = null;
+      // Simulate brief delay for UX
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Simulate 2 second delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Generate appropriate component based on parameters
       if (compType === "list") {
-        let items: any[] = [];
-        switch (dType) {
-          case "products":
-            items = generateMockProducts();
-            break;
-          case "users":
-            items = generateMockUsers();
-            break;
-          case "employees":
-            items = generateMockEmployees();
-            break;
-          case "orders":
-            items = generateMockOrders();
-            break;
+        showList(dType, layout);
+        return { success: true, componentType: compType, dataType: dType, layout: layout || "table" };
+      } else if (compType === "item") {
+        if (!itemId) {
+          return { success: false, error: "itemId is required for item component" };
         }
-        generateList(items, dType, layout);
-        component = true as any; // Flag to indicate component was set
+        showItem(dType, itemId, layout);
+        return { success: true, componentType: compType, dataType: dType, itemId, layout: layout || "panel" };
       } else if (compType === "form") {
+        // Form implementation (keeping simple for now)
+        const titles = getTitles(dType);
+        let fields: FormField[] = [];
+
         switch (dType) {
           case "products":
-            const productFields: FormField[] = [
+            fields = [
               { name: "name", label: "Product Name", type: "text", required: true, placeholder: "Enter product name" },
               {
                 name: "category",
@@ -318,114 +323,32 @@ export default function HomePage() {
               },
               { name: "price", label: "Price", type: "number", required: true, min: 0.01, step: 0.01 },
               { name: "stock", label: "Stock Quantity", type: "number", required: true, min: 0 },
-              { name: "description", label: "Description", type: "textarea", rows: 4 },
             ];
-            component = <GenericForm fields={productFields} onSubmit={(data) => console.log("Product submitted:", data)} title="Add New Product" submitText="Create Product" showSuccessMessage />;
             break;
-
-          case "users":
-            const userFields: FormField[] = [
-              { name: "firstName", label: "First Name", type: "text", required: true },
-              { name: "lastName", label: "Last Name", type: "text", required: true },
-              { name: "email", label: "Email", type: "email", required: true },
-              {
-                name: "role",
-                label: "Role",
-                type: "radio",
-                required: true,
-                options: [
-                  { label: "Admin", value: "admin" },
-                  { label: "Manager", value: "manager" },
-                  { label: "User", value: "user" },
-                ],
-              },
-              {
-                name: "department",
-                label: "Department",
-                type: "select",
-                required: true,
-                options: [
-                  { label: "IT", value: "it" },
-                  { label: "Sales", value: "sales" },
-                  { label: "Engineering", value: "engineering" },
-                ],
-              },
-            ];
-            component = <GenericForm fields={userFields} onSubmit={(data) => console.log("User submitted:", data)} title="Create User Account" submitText="Create User" showSuccessMessage />;
-            break;
-
-          case "employees":
-            const empFields: FormField[] = [
-              { name: "name", label: "Full Name", type: "text", required: true },
-              { name: "position", label: "Position", type: "text", required: true },
-              { name: "salary", label: "Annual Salary", type: "number", required: true, min: 0 },
-              { name: "experience", label: "Years of Experience", type: "number", required: true, min: 0, max: 50 },
-              { name: "startDate", label: "Start Date", type: "date", required: true },
-            ];
-            component = <GenericForm fields={empFields} onSubmit={(data) => console.log("Employee submitted:", data)} title="Add Employee" submitText="Add Employee" showSuccessMessage />;
-            break;
-
-          case "orders":
-            const orderFields: FormField[] = [
-              { name: "customer", label: "Customer Name", type: "text", required: true },
-              {
-                name: "product",
-                label: "Product",
-                type: "select",
-                required: true,
-                options: [
-                  { label: "Enterprise License", value: "enterprise" },
-                  { label: "Starter Package", value: "starter" },
-                ],
-              },
-              { name: "amount", label: "Amount", type: "number", required: true, min: 0.01, step: 0.01 },
-              { name: "orderDate", label: "Order Date", type: "date", required: true },
-              { name: "notes", label: "Notes", type: "textarea", rows: 3 },
-            ];
-            component = <GenericForm fields={orderFields} onSubmit={(data) => console.log("Order submitted:", data)} title="Create Order" submitText="Place Order" showSuccessMessage />;
-            break;
+            // Add more cases as needed
         }
-      } else if (compType === "item") {
-        let item: any;
-        switch (dType) {
-          case "products":
-            item = generateMockProducts()[0];
-            break;
-          case "users":
-            item = generateMockUsers()[0];
-            break;
-          case "employees":
-            item = generateMockEmployees()[0];
-            break;
-          case "orders":
-            item = generateMockOrders()[0];
-            break;
-        }
-        showItemDetail(item, dType, layout);
-        component = true as any; // Flag to indicate component was set
+
+        const component = <GenericForm fields={fields} onSubmit={(data) => console.log("Submitted:", data)} title={titles.form} submitText="Submit" showSuccessMessage />;
+        setDisplayState({ component, type: "form", dataType: dType });
+        return { success: true, componentType: compType, dataType: dType };
       }
 
-      if (component) {
-        // For list and item, the state is already set by helper functions
-        // For form, we need to set it here
-        if (compType === "form" && component !== true) {
-          setDisplayState({ component, type: compType, dataType: dType });
-        }
-        return { success: true, componentType: compType, dataType: dType, layout: layout || "default" };
-      }
-
-      return { success: false, error: "Invalid component or data type" };
+      return { success: false, error: "Invalid component type" };
     },
     render: ({ args, result }) => {
-      console.log(" === render ===");
       return (
         <div style={{ padding: "16px", background: "#f0f9ff", borderRadius: "8px", border: "2px solid #3b82f6" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
             <span style={{ fontSize: "1.5rem" }}>🤖</span>
-            <strong style={{ color: "#1e40af" }}>AI is generating component...</strong>
+            <strong style={{ color: "#1e40af" }}>Loading component...</strong>
           </div>
           <div style={{ fontSize: "0.875rem", color: "#1e40af" }}>
             Type: <strong>{args.componentType}</strong> | Data: <strong>{args.dataType}</strong>
+            {args.itemId && (
+              <span>
+                | ID: <strong>{args.itemId}</strong>
+              </span>
+            )}
             {args.layout && (
               <span>
                 | Layout: <strong>{args.layout}</strong>
@@ -443,10 +366,10 @@ export default function HomePage() {
         <Grid.Col span={6} style={{ padding: "2rem", overflowY: "auto" }}>
           <div style={{ marginBottom: "1.5rem" }}>
             <h1 style={{ margin: "0 0 8px 0", fontSize: "1.75rem", color: "#1f2937" }}>
-              AI-Powered Generic Components
+              AI-Powered Data Components
             </h1>
             <p style={{ margin: "0 0 16px 0", color: "#6b7280", fontSize: "0.95rem" }}>
-              Chat with AI to dynamically generate components with any data
+              Chat with AI to view and manage data
             </p>
 
             <div style={{ display: "flex", gap: "12px", marginBottom: "12px", flexWrap: "wrap" }}>
@@ -479,7 +402,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Dynamic Component Window - AI Controlled */}
           <DynamicComponentWindow
             component={displayState.component}
             animationType={animationType}

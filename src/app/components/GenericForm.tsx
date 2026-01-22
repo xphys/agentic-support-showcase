@@ -1,22 +1,23 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
+import FullScreenModal from "./FullScreenModal";
 
 export type FieldType =
-  | 'text'
-  | 'email'
-  | 'password'
-  | 'number'
-  | 'tel'
-  | 'url'
-  | 'date'
-  | 'time'
-  | 'datetime-local'
-  | 'textarea'
-  | 'select'
-  | 'checkbox'
-  | 'radio'
-  | 'file';
+  | "text"
+  | "email"
+  | "password"
+  | "number"
+  | "tel"
+  | "url"
+  | "date"
+  | "time"
+  | "datetime-local"
+  | "textarea"
+  | "select"
+  | "checkbox"
+  | "radio"
+  | "file";
 
 export interface FieldOption {
   label: string;
@@ -86,9 +87,11 @@ export interface GenericFormProps {
   /** Custom success message */
   successMessage?: string;
   /** Layout: vertical or horizontal */
-  layout?: 'vertical' | 'horizontal';
+  layout?: "vertical" | "horizontal";
   /** Additional CSS class */
   className?: string;
+  /** Hide fullscreen button (when already in fullscreen mode) */
+  hideFullscreenButton?: boolean;
 }
 
 const GenericForm: React.FC<GenericFormProps> = ({
@@ -97,18 +100,19 @@ const GenericForm: React.FC<GenericFormProps> = ({
   initialData = {},
   title,
   description,
-  submitText = 'Submit',
+  submitText = "Submit",
   cancelText,
   onCancel,
   showSuccessMessage = false,
-  successMessage = 'Form submitted successfully!',
-  layout = 'vertical',
-  className = '',
+  successMessage = "Form submitted successfully!",
+  layout = "vertical",
+  className = "",
+  hideFullscreenButton = false,
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>(() => {
     const initial: Record<string, any> = {};
     fields.forEach((field) => {
-      initial[field.name] = initialData[field.name] ?? field.defaultValue ?? '';
+      initial[field.name] = initialData[field.name] ?? field.defaultValue ?? "";
     });
     return initial;
   });
@@ -116,6 +120,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
 
   useEffect(() => {
     if (Object.keys(initialData).length > 0) {
@@ -124,7 +129,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
   }, [initialData]);
 
   const validateField = (field: FormField, value: any): string | null => {
-    if (field.required && (!value || (typeof value === 'string' && !value.trim()))) {
+    if (field.required && (!value || (typeof value === "string" && !value.trim()))) {
       return `${field.label} is required`;
     }
 
@@ -199,20 +204,20 @@ const GenericForm: React.FC<GenericFormProps> = ({
           // Reset form
           const initial: Record<string, any> = {};
           fields.forEach((field) => {
-            initial[field.name] = field.defaultValue ?? '';
+            initial[field.name] = field.defaultValue ?? "";
           });
           setFormData(initial);
         }, 2000);
       }
     } catch (error) {
-      console.error('Form submission error:', error);
+      console.error("Form submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const renderField = (field: FormField) => {
-    const value = formData[field.name] ?? '';
+    const value = formData[field.name] ?? "";
     const error = errors[field.name];
 
     const commonProps = {
@@ -220,11 +225,11 @@ const GenericForm: React.FC<GenericFormProps> = ({
       name: field.name,
       disabled: field.disabled || isSubmitting,
       required: field.required,
-      className: `form-control ${error ? 'error' : ''}`,
+      className: `form-control ${error ? "error" : ""}`,
     };
 
     switch (field.type) {
-      case 'textarea':
+      case "textarea":
         return (
           <textarea
             {...commonProps}
@@ -237,7 +242,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
           />
         );
 
-      case 'select':
+      case "select":
         return (
           <select
             {...commonProps}
@@ -254,7 +259,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
           </select>
         );
 
-      case 'checkbox':
+      case "checkbox":
         return (
           <div className="checkbox-group">
             {field.options?.map((option) => (
@@ -267,9 +272,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
                   onChange={(e) => {
                     const checked = e.target.checked;
                     const currentValue = Array.isArray(value) ? value : [];
-                    const newValue = checked
-                      ? [...currentValue, option.value]
-                      : currentValue.filter((v) => v !== option.value);
+                    const newValue = checked ? [...currentValue, option.value] : currentValue.filter((v) => v !== option.value);
                     handleChange(field.name, newValue);
                   }}
                   disabled={field.disabled || isSubmitting}
@@ -280,7 +283,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
           </div>
         );
 
-      case 'radio':
+      case "radio":
         return (
           <div className="radio-group">
             {field.options?.map((option) => (
@@ -300,7 +303,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
           </div>
         );
 
-      case 'file':
+      case "file":
         return (
           <input
             {...commonProps}
@@ -339,60 +342,83 @@ const GenericForm: React.FC<GenericFormProps> = ({
   }
 
   return (
-    <div className={`generic-form ${layout} ${className}`}>
-      {(title || description) && (
-        <div className="form-header">
-          {title && <h3>{title}</h3>}
-          {description && <p className="description">{description}</p>}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="form-body">
-        {fields.map((field) => (
-          <div
-            key={field.name}
-            className={`form-group ${field.className || ''}`}
-          >
-            <label htmlFor={field.name} className="form-label">
-              {field.label}
-              {field.required && <span className="required">*</span>}
-            </label>
-
-            {renderField(field)}
-
-            {field.helpText && !errors[field.name] && (
-              <small className="help-text">{field.helpText}</small>
-            )}
-
-            {errors[field.name] && (
-              <small className="error-text">{errors[field.name]}</small>
+    <>
+      <div className={`generic-form ${layout} ${className}`}>
+        {(title || description || !hideFullscreenButton) && (
+          <div className="form-header">
+            <div className="header-content">
+              {title && <h3>{title}</h3>}
+              {description && <p className="description">{description}</p>}
+            </div>
+            {!hideFullscreenButton && (
+              <button
+                type="button"
+                className="fullscreen-button"
+                onClick={() => setIsFullscreenOpen(true)}
+                aria-label="Open in fullscreen"
+                title="Open in fullscreen"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                </svg>
+                <span>Expand</span>
+              </button>
             )}
           </div>
-        ))}
+        )}
 
-        <div className="form-actions">
-          <button
-            type="submit"
-            className="btn-submit"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Submitting...' : submitText}
-          </button>
+        <form onSubmit={handleSubmit} className="form-body">
+          {fields.map((field) => (
+            <div
+              key={field.name}
+              className={`form-group ${field.className || ""}`}
+            >
+              <label htmlFor={field.name} className="form-label">
+                {field.label}
+                {field.required && <span className="required">*</span>}
+              </label>
 
-          {cancelText && onCancel && (
+              {renderField(field)}
+
+              {field.helpText && !errors[field.name] && <small className="help-text">{field.helpText}</small>}
+
+              {errors[field.name] && <small className="error-text">{errors[field.name]}</small>}
+            </div>
+          ))}
+
+          <div className="form-actions">
             <button
-              type="button"
-              className="btn-cancel"
-              onClick={onCancel}
+              type="submit"
+              className="btn-submit"
               disabled={isSubmitting}
             >
-              {cancelText}
+              {isSubmitting ? "Submitting..." : submitText}
             </button>
-          )}
-        </div>
-      </form>
 
-      <style jsx>{`
+            {cancelText && onCancel && (
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                {cancelText}
+              </button>
+            )}
+          </div>
+        </form>
+
+        <style jsx>
+          {`
         .generic-form {
           width: 100%;
           max-width: 600px;
@@ -400,6 +426,14 @@ const GenericForm: React.FC<GenericFormProps> = ({
 
         .form-header {
           margin-bottom: 24px;
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .header-content {
+          flex: 1;
         }
 
         .form-header h3 {
@@ -412,6 +446,34 @@ const GenericForm: React.FC<GenericFormProps> = ({
           margin: 0;
           color: #6b7280;
           font-size: 0.875rem;
+        }
+
+        .fullscreen-button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          background: white;
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          flex-shrink: 0;
+        }
+
+        .fullscreen-button:hover {
+          background: #f9fafb;
+          border-color: #667eea;
+          color: #667eea;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .fullscreen-button svg {
+          flex-shrink: 0;
         }
 
         .form-body {
@@ -624,9 +686,42 @@ const GenericForm: React.FC<GenericFormProps> = ({
             width: 100%;
             padding-top: 0;
           }
+
+          .form-header {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .fullscreen-button {
+            width: 100%;
+            justify-content: center;
+          }
         }
-      `}</style>
-    </div>
+      `}
+        </style>
+      </div>
+
+      <FullScreenModal
+        isOpen={isFullscreenOpen}
+        onClose={() => setIsFullscreenOpen(false)}
+        title={title || "Form"}
+      >
+        <GenericForm
+          fields={fields}
+          onSubmit={onSubmit}
+          initialData={formData}
+          title={undefined}
+          description={description}
+          submitText={submitText}
+          cancelText={cancelText}
+          onCancel={onCancel}
+          showSuccessMessage={showSuccessMessage}
+          successMessage={successMessage}
+          layout={layout}
+          hideFullscreenButton={true}
+        />
+      </FullScreenModal>
+    </>
   );
 };
 

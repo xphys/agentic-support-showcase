@@ -1,5 +1,4 @@
 import "@mantine/core/styles.css";
-import "@copilotkit/react-ui/styles.css";
 import "./globals.css";
 
 import { ColorSchemeScript, mantineHtmlProps, MantineProvider } from "@mantine/core";
@@ -7,8 +6,8 @@ import { theme } from "../../theme";
 import { CopilotKit } from "@copilotkit/react-core";
 
 export const metadata = {
-  title: "Mantine Next.js template",
-  description: "I am using Mantine with Next.js!",
+  title: "AI-Powered Data Components",
+  description: "Modern chat interface for AI-powered data management",
 };
 
 export default function RootLayout({ children }: { children: any }) {

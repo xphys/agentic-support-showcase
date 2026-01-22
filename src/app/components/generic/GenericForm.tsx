@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import FullScreenModal from "./FullScreenModal";
+import FullScreenModal from "../FullScreenModal";
 
 export type FieldType =
   | "text"

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { DataType, loadItemData } from "../actions/dataActions";
-import FullScreenModal from "./FullScreenModal";
+import { DataType, loadItemData } from "../../actions/dataActions";
+import FullScreenModal from "../FullScreenModal";
 
 export interface ItemField<T = any> {
   /** Unique key for the field */

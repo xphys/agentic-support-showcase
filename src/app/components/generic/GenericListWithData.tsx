@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { DataType, loadListData } from "../actions/dataActions";
-import FullScreenModal from "./FullScreenModal";
+import { DataType, loadListData } from "../../actions/dataActions";
+import FullScreenModal from "../FullScreenModal";
 
 export interface ListColumn<T = any> {
   /** Unique key for the column */

@@ -1,14 +1,14 @@
 "use client";
 
-import { CopilotChat } from "@copilotkit/react-ui";
 import { useFrontendTool } from "@copilotkit/react-core";
-import { Container, Grid } from "@mantine/core";
+import { Container, Grid, SegmentedControl } from "@mantine/core";
 import { useState } from "react";
-import DynamicComponentWindow from "./components/DynamicComponentWindow";
-import GenericListWithData, { ListConfig } from "./components/GenericListWithData";
-import GenericItemWithData, { ItemAction, ItemField } from "./components/GenericItemWithData";
-import GenericForm, { FormField } from "./components/GenericForm";
+import StackDynamicComponentWindow from "./components/StackDynamicComponentWindow";
+import GenericListWithData, { ListConfig } from "./components/generic/GenericListWithData";
+import GenericItemWithData, { ItemAction, ItemField } from "./components/generic/GenericItemWithData";
+import GenericForm, { FormField } from "./components/generic/GenericForm";
 import { DataType } from "./actions/dataActions";
+import { CustomCopilotChat } from "./components/CustomCopilotChat";
 
 type AnimationType = "fade" | "slide" | "scale" | "flip";
 type ComponentType = "list" | "form" | "item" | "demo";
@@ -336,6 +336,7 @@ export default function HomePage() {
       return { success: false, error: "Invalid component type" };
     },
     render: ({ args, result }) => {
+      return (<h1>Loading component...</h1>)
       return (
         <div style={{ padding: "16px", background: "#f0f9ff", borderRadius: "8px", border: "2px solid #3b82f6" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
@@ -363,56 +364,94 @@ export default function HomePage() {
   return (
     <Container size="xl" style={{ height: "100vh", padding: 0 }}>
       <Grid gutter={0} style={{ height: "100%" }}>
-        <Grid.Col span={6} style={{ padding: "2rem", overflowY: "auto" }}>
-          <div style={{ marginBottom: "1.5rem" }}>
-            <h1 style={{ margin: "0 0 8px 0", fontSize: "1.75rem", color: "#1f2937" }}>
-              AI-Powered Data Components
-            </h1>
-            <p style={{ margin: "0 0 16px 0", color: "#6b7280", fontSize: "0.95rem" }}>
-              Chat with AI to view and manage data
-            </p>
-
-            <div style={{ display: "flex", gap: "12px", marginBottom: "12px", flexWrap: "wrap" }}>
-              <div
+        <Grid.Col span={8} style={{ padding: "2rem", overflowY: "auto" }}>
+          <Container
+            fluid
+            px={12}
+            py={6}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "14px",
+              marginBottom: "1.25rem",
+              background: "#f3f4f6",
+              borderRadius: "8px",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.02)",
+              minHeight: 48,
+              flexWrap: "wrap",
+              justifyContent: "space-between"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
+              <span
                 style={{
-                  padding: "8px 12px",
-                  background: "#f0fdf4",
-                  borderRadius: "6px",
-                  fontSize: "0.875rem",
-                  border: "1px solid #86efac",
+                  fontWeight: 600,
+                  color: "#1f2937",
+                  fontSize: "1rem",
+                  marginRight: "8px",
                 }}
               >
-                <strong>Current:</strong> {displayState.type} - {displayState.dataType}
-              </div>
+                Space
+              </span>
+              <span
+                style={{
+                  color: "#6b7280",
+                  fontSize: "0.95rem",
+                  marginRight: "8px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <span style={{ opacity: 0.75 }}>Current:</span>
+                <span style={{
+                  fontWeight: 500,
+                  background: "#f0fdf4",
+                  borderRadius: "4px",
+                  padding: "2px 7px",
+                  fontSize: "0.85rem",
+                  border: "1px solid #bbf7d0",
+                  color: "#16a34a"
+                }}>
+                  {displayState.type} - {displayState.dataType}
+                </span>
+              </span>
             </div>
-
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-              <span style={{ fontSize: "0.875rem", color: "#6b7280", fontWeight: 500 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 80, marginLeft: "auto" }}>
+              <span
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  fontWeight: 500,
+                  marginRight: "4px",
+                }}
+              >
                 Animation:
               </span>
-              {(["fade", "slide", "scale", "flip"] as AnimationType[]).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setAnimationType(type)}
-                  className={`animation-button ${animationType === type ? "active" : ""}`}
-                >
-                  {type}
-                </button>
-              ))}
+              <SegmentedControl
+                value={animationType}
+                onChange={(val) => setAnimationType(val as AnimationType)}
+                data={[
+                  { label: "Fade", value: "fade" },
+                  { label: "Slide", value: "slide" },
+                  { label: "Scale", value: "scale" },
+                  { label: "Flip", value: "flip" },
+                ]}
+                size="sm"
+                transitionDuration={200}
+              />
             </div>
-          </div>
+          </Container>
 
-          <DynamicComponentWindow
+          <StackDynamicComponentWindow
             component={displayState.component}
             animationType={animationType}
             animationDuration={400}
             height="calc(100vh - 200px)"
           />
         </Grid.Col>
-        <Grid.Col span={6} style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-          <div className="chat-container">
-            <CopilotChat />
-          </div>
+        <Grid.Col span={4} style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+          <CustomCopilotChat />
         </Grid.Col>
       </Grid>
 

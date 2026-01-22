@@ -1,0 +1,278 @@
+/* Stack Dynamic Component Window Styles */
+.stack-dynamic-window {
+  background: #f3f4f6;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 16px;
+}
+
+.stack-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+.stacked-component {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stacked-component:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.stacked-component-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(to bottom, #f9fafb, #ffffff);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stacked-component-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  flex: 1;
+}
+
+.stacked-component-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.stacked-component-close:hover {
+  background: #f3f4f6;
+  color: #ef4444;
+}
+
+.stacked-component-close:active {
+  transform: scale(0.95);
+}
+
+.stacked-component-close-no-header {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stacked-component-content {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+}
+
+.empty-stack-message {
+  text-align: center;
+  color: #9ca3af;
+  padding: 40px 20px;
+  font-size: 1.125rem;
+}
+
+/* ============================================
+   FADE ANIMATION
+   ============================================ */
+.stacked-component.fade.enter {
+  animation: stackFadeIn var(--animation-duration, 400ms) ease-out forwards;
+}
+
+.stacked-component.fade.exit {
+  animation: stackFadeOut var(--animation-duration, 400ms) ease-in forwards;
+}
+
+@keyframes stackFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stackFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* ============================================
+   SLIDE ANIMATION
+   ============================================ */
+.stacked-component.slide.enter {
+  animation: stackSlideIn var(--animation-duration, 400ms) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.stacked-component.slide.exit {
+  animation: stackSlideOut var(--animation-duration, 400ms) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes stackSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes stackSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+    max-height: 1000px;
+    margin-bottom: 16px;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+  }
+}
+
+/* ============================================
+   SCALE ANIMATION
+   ============================================ */
+.stacked-component.scale.enter {
+  animation: stackScaleIn var(--animation-duration, 400ms) cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.stacked-component.scale.exit {
+  animation: stackScaleOut var(--animation-duration, 400ms) cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+
+@keyframes stackScaleIn {
+  from {
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes stackScaleOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+    max-height: 1000px;
+    margin-bottom: 16px;
+  }
+  to {
+    transform: scale(0.9);
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+  }
+}
+
+/* ============================================
+   FLIP ANIMATION
+   ============================================ */
+.stacked-component.flip.enter {
+  animation: stackFlipIn var(--animation-duration, 400ms) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.stacked-component.flip.exit {
+  animation: stackFlipOut var(--animation-duration, 400ms) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes stackFlipIn {
+  from {
+    transform: rotateX(-90deg) translateY(20px);
+    opacity: 0;
+    transform-origin: top center;
+  }
+  to {
+    transform: rotateX(0deg) translateY(0);
+    opacity: 1;
+    transform-origin: top center;
+  }
+}
+
+@keyframes stackFlipOut {
+  from {
+    transform: rotateX(0deg);
+    opacity: 1;
+    max-height: 1000px;
+    margin-bottom: 16px;
+    transform-origin: top center;
+  }
+  to {
+    transform: rotateX(90deg);
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    transform-origin: top center;
+  }
+}
+
+/* ============================================
+   VISIBLE STATE (no animation)
+   ============================================ */
+.stacked-component.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+  .stack-dynamic-window {
+    padding: 12px;
+  }
+
+  .stack-container {
+    gap: 12px;
+  }
+
+  .stacked-component-header {
+    padding: 12px 16px;
+  }
+
+  .stacked-component-title {
+    font-size: 1.125rem;
+  }
+
+  .stacked-component-content {
+    padding: 16px;
+  }
+}

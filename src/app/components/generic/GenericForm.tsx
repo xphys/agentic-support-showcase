@@ -1,6 +1,21 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import {
+  TextInput,
+  Textarea,
+  Select,
+  Checkbox,
+  Radio,
+  FileInput,
+  Button,
+  Stack,
+  Box,
+  Title,
+  Text,
+  Alert,
+} from "@mantine/core";
+import { DatePickerInput, TimeInput } from "@mantine/dates";
 import FullScreenModal from "../FullScreenModal";
 
 export type FieldType =
@@ -221,22 +236,24 @@ const GenericForm: React.FC<GenericFormProps> = ({
     const error = errors[field.name];
 
     const commonProps = {
-      id: field.name,
+      label: field.label,
       name: field.name,
       disabled: field.disabled || isSubmitting,
       required: field.required,
-      className: `form-control ${error ? "error" : ""}`,
+      error: error,
+      description: field.helpText,
+      withAsterisk: field.required,
     };
 
     switch (field.type) {
       case "textarea":
         return (
-          <textarea
+          <Textarea
             {...commonProps}
             value={value}
             onChange={(e) => handleChange(field.name, e.target.value)}
             placeholder={field.placeholder}
-            rows={field.rows || 4}
+            minRows={field.rows || 4}
             minLength={field.minLength}
             maxLength={field.maxLength}
           />
@@ -244,89 +261,152 @@ const GenericForm: React.FC<GenericFormProps> = ({
 
       case "select":
         return (
-          <select
+          <Select
             {...commonProps}
             value={value}
-            onChange={(e) => handleChange(field.name, e.target.value)}
-            multiple={field.multiple}
-          >
-            {!field.required && <option value="">Select an option</option>}
-            {field.options?.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => handleChange(field.name, val)}
+            data={field.options?.map((opt) => ({
+              value: String(opt.value),
+              label: opt.label,
+            })) || []}
+            placeholder={field.placeholder || "Select an option"}
+            clearable={!field.required}
+          />
         );
 
       case "checkbox":
         return (
-          <div className="checkbox-group">
-            {field.options?.map((option) => (
-              <label key={option.value} className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name={field.name}
-                  value={option.value}
-                  checked={Array.isArray(value) && value.includes(option.value)}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    const currentValue = Array.isArray(value) ? value : [];
-                    const newValue = checked ? [...currentValue, option.value] : currentValue.filter((v) => v !== option.value);
-                    handleChange(field.name, newValue);
-                  }}
-                  disabled={field.disabled || isSubmitting}
+          <Checkbox.Group
+            {...commonProps}
+            value={Array.isArray(value) ? value.map(String) : []}
+            onChange={(val) => handleChange(field.name, val)}
+          >
+            <Stack gap="sm">
+              {field.options?.map((option) => (
+                <Checkbox
+                  key={option.value}
+                  value={String(option.value)}
+                  label={option.label}
                 />
-                <span>{option.label}</span>
-              </label>
-            ))}
-          </div>
+              ))}
+            </Stack>
+          </Checkbox.Group>
         );
 
       case "radio":
         return (
-          <div className="radio-group">
-            {field.options?.map((option) => (
-              <label key={option.value} className="radio-label">
-                <input
-                  type="radio"
-                  name={field.name}
-                  value={option.value}
-                  checked={value === option.value}
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  disabled={field.disabled || isSubmitting}
-                  required={field.required}
+          <Radio.Group
+            {...commonProps}
+            value={String(value)}
+            onChange={(val) => handleChange(field.name, val)}
+          >
+            <Stack gap="sm">
+              {field.options?.map((option) => (
+                <Radio
+                  key={option.value}
+                  value={String(option.value)}
+                  label={option.label}
                 />
-                <span>{option.label}</span>
-              </label>
-            ))}
-          </div>
+              ))}
+            </Stack>
+          </Radio.Group>
         );
 
       case "file":
         return (
-          <input
+          <FileInput
             {...commonProps}
-            type="file"
-            onChange={(e) => handleChange(field.name, e.target.files)}
+            value={value}
+            onChange={(file) => handleChange(field.name, file)}
+            placeholder={field.placeholder || "Select file"}
             multiple={field.multiple}
           />
         );
 
-      default:
+      case "date":
         return (
-          <input
+          <DatePickerInput
+            {...commonProps}
+            value={value ? new Date(value) : null}
+            onChange={(val: any) => {
+              if (val instanceof Date) {
+                handleChange(field.name, val.toISOString().split('T')[0]);
+              } else {
+                handleChange(field.name, val);
+              }
+            }}
+            placeholder={field.placeholder}
+            minDate={field.min ? new Date(field.min) : undefined}
+            maxDate={field.max ? new Date(field.max) : undefined}
+          />
+        );
+
+      case "time":
+        return (
+          <TimeInput
+            {...commonProps}
+            value={value}
+            onChange={(e) => handleChange(field.name, e.target.value)}
+          />
+        );
+
+      case "datetime-local":
+        return (
+          <DatePickerInput
+            {...commonProps}
+            value={value ? new Date(value) : null}
+            onChange={(val: any) => {
+              if (val instanceof Date) {
+                handleChange(field.name, val.toISOString());
+              } else {
+                handleChange(field.name, val);
+              }
+            }}
+            placeholder={field.placeholder}
+            minDate={field.min ? new Date(field.min) : undefined}
+            maxDate={field.max ? new Date(field.max) : undefined}
+          />
+        );
+
+      case "email":
+      case "password":
+      case "tel":
+      case "url":
+        return (
+          <TextInput
             {...commonProps}
             type={field.type}
             value={value}
             onChange={(e) => handleChange(field.name, e.target.value)}
             placeholder={field.placeholder}
-            min={field.min}
-            max={field.max}
             minLength={field.minLength}
             maxLength={field.maxLength}
+          />
+        );
+
+      case "number":
+        return (
+          <TextInput
+            {...commonProps}
+            type="number"
+            value={value}
+            onChange={(e) => handleChange(field.name, e.target.value)}
+            placeholder={field.placeholder}
+            min={field.min}
+            max={field.max}
             step={field.step}
-            pattern={field.pattern}
+          />
+        );
+
+      default:
+        return (
+          <TextInput
+            {...commonProps}
+            value={value}
+            onChange={(e) => handleChange(field.name, e.target.value)}
+            placeholder={field.placeholder}
+            minLength={field.minLength}
+            maxLength={field.maxLength}
           />
         );
     }
@@ -334,22 +414,65 @@ const GenericForm: React.FC<GenericFormProps> = ({
 
   if (submitted && showSuccessMessage) {
     return (
-      <div className="generic-form-success">
-        <div className="success-icon">✓</div>
-        <h4>{successMessage}</h4>
-      </div>
+      <Alert
+        variant="light"
+        color="green"
+        title="Success"
+        radius="lg"
+        styles={{
+          root: {
+            padding: "64px 32px",
+            textAlign: "center",
+          },
+          title: {
+            fontSize: "1.75rem",
+            fontWeight: 800,
+            justifyContent: "center",
+          },
+        }}
+      >
+        <Box style={{ fontSize: "3.5rem", marginBottom: "20px" }}>✓</Box>
+        <Text size="lg" fw={600}>{successMessage}</Text>
+      </Alert>
     );
   }
 
   return (
     <>
-      <div className={`generic-form ${layout} ${className}`}>
+      <Box className={className} style={{ width: "100%", maxWidth: "600px" }}>
         {(title || description || !hideFullscreenButton) && (
-          <div className="form-header">
-            <div className="header-content">
-              {title && <h3>{title}</h3>}
-              {description && <p className="description">{description}</p>}
-            </div>
+          <Box
+            style={{
+              marginBottom: "32px",
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: "20px",
+            }}
+          >
+            <Box style={{ flex: 1 }}>
+              {title && (
+                <Title
+                  order={3}
+                  style={{
+                    margin: "0 0 12px 0",
+                    fontSize: "1.85rem",
+                    fontWeight: 800,
+                    background: "linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #c026d3 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  {title}
+                </Title>
+              )}
+              {description && (
+                <Text c="dimmed" size="md" style={{ lineHeight: 1.6 }}>
+                  {description}
+                </Text>
+              )}
+            </Box>
             {!hideFullscreenButton && (
               <button
                 type="button"
@@ -373,325 +496,84 @@ const GenericForm: React.FC<GenericFormProps> = ({
                 <span>Expand</span>
               </button>
             )}
-          </div>
+          </Box>
         )}
 
-        <form onSubmit={handleSubmit} className="form-body">
-          {fields.map((field) => (
-            <div
-              key={field.name}
-              className={`form-group ${field.className || ""}`}
-            >
-              <label htmlFor={field.name} className="form-label">
-                {field.label}
-                {field.required && <span className="required">*</span>}
-              </label>
+        <form onSubmit={handleSubmit}>
+          <Stack gap="lg">
+            {fields.map((field) => (
+              <Box key={field.name} className={field.className}>
+                {renderField(field)}
+              </Box>
+            ))}
 
-              {renderField(field)}
-
-              {field.helpText && !errors[field.name] && <small className="help-text">{field.helpText}</small>}
-
-              {errors[field.name] && <small className="error-text">{errors[field.name]}</small>}
-            </div>
-          ))}
-
-          <div className="form-actions">
-            <button
-              type="submit"
-              className="btn-submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Submitting..." : submitText}
-            </button>
-
-            {cancelText && onCancel && (
-              <button
-                type="button"
-                className="btn-cancel"
-                onClick={onCancel}
+            <Box style={{ display: "flex", gap: "16px", marginTop: "16px" }}>
+              <Button
+                type="submit"
+                color="violet"
+                size="md"
                 disabled={isSubmitting}
+                loading={isSubmitting}
+                fullWidth
+                style={{
+                  fontWeight: 700,
+                  letterSpacing: "0.3px",
+                }}
               >
-                {cancelText}
-              </button>
-            )}
-          </div>
+                {submitText}
+              </Button>
+
+              {cancelText && onCancel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  color="violet"
+                  size="md"
+                  onClick={onCancel}
+                  disabled={isSubmitting}
+                  style={{
+                    fontWeight: 700,
+                  }}
+                >
+                  {cancelText}
+                </Button>
+              )}
+            </Box>
+          </Stack>
         </form>
 
         <style jsx>
           {`
-        .generic-form {
-          width: 100%;
-          max-width: 600px;
-        }
-
-        .form-header {
-          margin-bottom: 24px;
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 16px;
-        }
-
-        .header-content {
-          flex: 1;
-        }
-
-        .form-header h3 {
-          margin: 0 0 8px 0;
-          font-size: 1.5rem;
-          color: #1f2937;
-        }
-
-        .description {
-          margin: 0;
-          color: #6b7280;
-          font-size: 0.875rem;
-        }
-
         .fullscreen-button {
           display: flex;
           align-items: center;
-          gap: 6px;
-          padding: 8px 14px;
-          background: white;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
+          gap: 8px;
+          padding: 10px 18px;
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+          border: 2px solid rgba(124, 58, 237, 0.2);
+          border-radius: 12px;
           font-size: 0.875rem;
-          font-weight: 500;
-          color: #374151;
+          font-weight: 600;
+          color: #7c3aed;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .fullscreen-button:hover {
-          background: #f9fafb;
-          border-color: #667eea;
-          color: #667eea;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(102, 126, 234, 0.1);
+          background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+          color: white;
+          border-color: transparent;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
         }
 
         .fullscreen-button svg {
           flex-shrink: 0;
         }
 
-        .form-body {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .generic-form.horizontal .form-group {
-          flex-direction: row;
-          align-items: flex-start;
-        }
-
-        .generic-form.horizontal .form-label {
-          width: 200px;
-          padding-top: 12px;
-          flex-shrink: 0;
-        }
-
-        .generic-form.horizontal .form-group > div {
-          flex: 1;
-        }
-
-        .form-label {
-          font-weight: 600;
-          color: #374151;
-          font-size: 0.875rem;
-        }
-
-        .required {
-          color: #ef4444;
-          margin-left: 4px;
-        }
-
-        .form-control {
-          padding: 12px 16px;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 0.95rem;
-          font-family: inherit;
-          transition: all 0.2s ease;
-          background: #ffffff;
-        }
-
-        .form-control:focus {
-          outline: none;
-          border-color: #667eea;
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-control.error {
-          border-color: #ef4444;
-        }
-
-        .form-control.error:focus {
-          box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-        }
-
-        .form-control:disabled {
-          background: #f3f4f6;
-          cursor: not-allowed;
-        }
-
-        textarea.form-control {
-          resize: vertical;
-          min-height: 100px;
-        }
-
-        select.form-control {
-          cursor: pointer;
-        }
-
-        .checkbox-group,
-        .radio-group {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .checkbox-label,
-        .radio-label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-          font-size: 0.95rem;
-          color: #374151;
-        }
-
-        .checkbox-label input,
-        .radio-label input {
-          cursor: pointer;
-          width: 18px;
-          height: 18px;
-        }
-
-        .help-text {
-          color: #6b7280;
-          font-size: 0.8rem;
-          margin-top: -4px;
-        }
-
-        .error-text {
-          color: #ef4444;
-          font-size: 0.8rem;
-          margin-top: -4px;
-          font-weight: 500;
-        }
-
-        .form-actions {
-          display: flex;
-          gap: 12px;
-          margin-top: 8px;
-        }
-
-        .btn-submit,
-        .btn-cancel {
-          padding: 14px 24px;
-          border: none;
-          border-radius: 8px;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .btn-submit {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          flex: 1;
-        }
-
-        .btn-submit:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 20px -10px rgba(102, 126, 234, 0.5);
-        }
-
-        .btn-submit:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .btn-cancel {
-          background: white;
-          color: #374151;
-          border: 2px solid #d1d5db;
-        }
-
-        .btn-cancel:hover:not(:disabled) {
-          background: #f9fafb;
-          border-color: #9ca3af;
-        }
-
-        .generic-form-success {
-          text-align: center;
-          padding: 48px 24px;
-          animation: fadeIn 0.3s ease-out;
-        }
-
-        .success-icon {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 3rem;
-          margin: 0 auto 24px;
-          animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .generic-form-success h4 {
-          margin: 0;
-          font-size: 1.5rem;
-          color: #1f2937;
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes scaleIn {
-          from {
-            transform: scale(0);
-          }
-          to {
-            transform: scale(1);
-          }
-        }
-
         @media (max-width: 768px) {
-          .generic-form.horizontal .form-group {
-            flex-direction: column;
-          }
-
-          .generic-form.horizontal .form-label {
-            width: 100%;
-            padding-top: 0;
-          }
-
-          .form-header {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
           .fullscreen-button {
             width: 100%;
             justify-content: center;
@@ -699,7 +581,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
         }
       `}
         </style>
-      </div>
+      </Box>
 
       <FullScreenModal
         isOpen={isFullscreenOpen}

@@ -1,7 +1,19 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import styles from './GenericList.module.css';
+import {
+  Card,
+  Table,
+  Stack,
+  Box,
+  TextInput,
+  Badge,
+  Title,
+  Text,
+  Group,
+  Grid,
+} from '@mantine/core';
+import { IconSearch } from '@tabler/icons-react';
 
 export interface ListColumn<T = any> {
   /** Unique key for the column */
@@ -142,176 +154,398 @@ const GenericList = <T extends Record<string, any>>({
   // If an item is selected and we have a render function, show the item view
   if (selectedItem && renderItemView) {
     return (
-      <div className={`${styles.genericList} ${className}`}>
+      <Box className={className}>
         {renderItemView(selectedItem, handleBackToList)}
-      </div>
+      </Box>
     );
   }
 
   const renderGridLayout = () => (
-    <div className={styles.genericListGrid}>
+    <Grid gutter="xl">
       {sortedItems.map((item, index) => {
         const status = config.getItemStatus?.(item);
+        const isClickable = !!(config.onItemClick || renderItemView);
         return (
-          <div
-            key={config.getItemKey(item)}
-            className={`${styles.genericListCard} ${(config.onItemClick || renderItemView) ? styles.clickable : ''}`}
-            onClick={() => handleItemClick(item)}
-          >
-            {config.showNumbers && (
-              <div className={styles.itemNumber}>{index + 1}</div>
-            )}
-            <div className={styles.cardContent}>
-              {config.columns.map((column) => {
-                const value = column.getValue(item);
-                const rendered = column.render ? column.render(value, item) : value;
-                return (
-                  <div key={column.key} className={styles.cardField}>
-                    <label>{column.label}</label>
-                    <div className={styles.cardValue}>{rendered}</div>
-                  </div>
-                );
-              })}
-              {status && (
-                <span className={styles.itemStatus} style={{ background: status.color }}>
-                  {status.label}
-                </span>
-              )}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  const renderTableLayout = () => (
-    <div className={styles.genericListTableContainer}>
-      <table className={styles.genericListTable}>
-        <thead>
-          <tr>
-            {config.showNumbers && <th style={{ width: '60px' }}>#</th>}
-            {config.columns.map((column) => (
-              <th
-                key={column.key}
-                style={{ width: column.width }}
-                className={column.sortable ? styles.sortable : ''}
-                onClick={() => handleSort(column.key)}
-              >
-                <div className={styles.thContent}>
-                  {column.label}
-                  {column.sortable && sortColumn === column.key && (
-                    <span className={styles.sortIndicator}>
-                      {sortDirection === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </div>
-              </th>
-            ))}
-            {config.getItemStatus && <th style={{ width: '120px' }}>Status</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {sortedItems.map((item, index) => {
-            const status = config.getItemStatus?.(item);
-            return (
-              <tr
-                key={config.getItemKey(item)}
-                className={(config.onItemClick || renderItemView) ? styles.clickable : ''}
-                onClick={() => handleItemClick(item)}
-              >
-                {config.showNumbers && <td>{index + 1}</td>}
+          <Grid.Col key={config.getItemKey(item)} span={{ base: 12, sm: 6, md: 4 }}>
+            <Card
+              shadow="sm"
+              padding="xl"
+              radius="lg"
+              withBorder
+              style={{
+                cursor: isClickable ? 'pointer' : 'default',
+                transition: 'all 0.3s ease',
+                borderColor: 'transparent',
+                background: 'linear-gradient(white, white) padding-box, linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(139, 92, 246, 0.1)) border-box',
+                position: 'relative',
+              }}
+              onClick={() => handleItemClick(item)}
+              onMouseEnter={(e) => {
+                if (isClickable) {
+                  e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(124, 58, 237, 0.15)';
+                  e.currentTarget.style.background = 'linear-gradient(white, white) padding-box, linear-gradient(135deg, #7c3aed, #8b5cf6, #d946ef) border-box';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '';
+                e.currentTarget.style.background = 'linear-gradient(white, white) padding-box, linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(139, 92, 246, 0.1)) border-box';
+              }}
+            >
+              <Stack gap="md">
+                {config.showNumbers && (
+                  <Box
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 16,
+                      background: 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #d946ef 100%)',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '1.05rem',
+                      boxShadow: '0 6px 16px rgba(124, 58, 237, 0.35)',
+                    }}
+                  >
+                    {index + 1}
+                  </Box>
+                )}
                 {config.columns.map((column) => {
                   const value = column.getValue(item);
                   const rendered = column.render ? column.render(value, item) : value;
-                  return <td key={column.key}>{rendered}</td>;
+                  return (
+                    <Box key={column.key} style={{ paddingBottom: 12, borderBottom: '1px solid rgba(148, 163, 184, 0.08)' }}>
+                      <Text size="xs" fw={800} c="dimmed" tt="uppercase" style={{ letterSpacing: 1.2, marginBottom: 8 }}>
+                        {column.label}
+                      </Text>
+                      <Text size="md" fw={600} style={{ wordBreak: 'break-word' }}>
+                        {rendered}
+                      </Text>
+                    </Box>
+                  );
                 })}
-                {config.getItemStatus && status && (
-                  <td>
-                    <span className={styles.itemStatus} style={{ background: status.color }}>
-                      {status.label}
-                    </span>
-                  </td>
+                {status && (
+                  <Badge
+                    color="violet"
+                    variant="filled"
+                    size="lg"
+                    radius="xl"
+                    style={{
+                      background: status.color,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.8,
+                    }}
+                  >
+                    {status.label}
+                  </Badge>
                 )}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-
-  const renderListLayout = () => (
-    <div className={styles.genericListItems}>
-      {sortedItems.map((item, index) => {
-        const status = config.getItemStatus?.(item);
-        return (
-          <div
-            key={config.getItemKey(item)}
-            className={`${styles.genericListItem} ${(config.onItemClick || renderItemView) ? styles.clickable : ''}`}
-            onClick={() => handleItemClick(item)}
-          >
-            {config.showNumbers && (
-              <div className={styles.itemNumber}>{index + 1}</div>
-            )}
-            <div className={styles.itemContent}>
-              {config.columns.map((column) => {
-                const value = column.getValue(item);
-                const rendered = column.render ? column.render(value, item) : value;
-                return (
-                  <div key={column.key} className={styles.itemField}>
-                    <span className={styles.fieldLabel}>{column.label}:</span>
-                    <span className={styles.fieldValue}>{rendered}</span>
-                  </div>
-                );
-              })}
-            </div>
-            {status && (
-              <span className={styles.itemStatus} style={{ background: status.color }}>
-                {status.label}
-              </span>
-            )}
-          </div>
+              </Stack>
+            </Card>
+          </Grid.Col>
         );
       })}
-    </div>
+    </Grid>
+  );
+
+  const renderTableLayout = () => {
+    const isClickable = !!(config.onItemClick || renderItemView);
+    return (
+      <Box
+        style={{
+          overflowX: 'auto',
+          padding: 24,
+          background: 'linear-gradient(135deg, #fefeff 0%, #f8fafc 100%)',
+          borderRadius: 24,
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.06)',
+        }}
+      >
+        <Table
+          highlightOnHover={isClickable}
+          verticalSpacing="md"
+          horizontalSpacing="xl"
+          striped={false}
+          withTableBorder={false}
+          withColumnBorders={false}
+        >
+          <Table.Thead>
+            <Table.Tr>
+              {config.showNumbers && (
+                <Table.Th style={{ width: '60px' }}>
+                  <Text size="xs" fw={800} c="dimmed" tt="uppercase" style={{ letterSpacing: 1.5 }}>
+                    #
+                  </Text>
+                </Table.Th>
+              )}
+              {config.columns.map((column) => (
+                <Table.Th
+                  key={column.key}
+                  style={{
+                    width: column.width,
+                    cursor: column.sortable ? 'pointer' : 'default',
+                  }}
+                  onClick={() => handleSort(column.key)}
+                >
+                  <Group gap="xs">
+                    <Text size="xs" fw={800} c="dimmed" tt="uppercase" style={{ letterSpacing: 1.5 }}>
+                      {column.label}
+                    </Text>
+                    {column.sortable && sortColumn === column.key && (
+                      <Text c="violet" fw="bold">
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </Text>
+                    )}
+                  </Group>
+                </Table.Th>
+              ))}
+              {config.getItemStatus && (
+                <Table.Th style={{ width: '120px' }}>
+                  <Text size="xs" fw={800} c="dimmed" tt="uppercase" style={{ letterSpacing: 1.5 }}>
+                    Status
+                  </Text>
+                </Table.Th>
+              )}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {sortedItems.map((item, index) => {
+              const status = config.getItemStatus?.(item);
+              return (
+                <Table.Tr
+                  key={config.getItemKey(item)}
+                  style={{
+                    cursor: isClickable ? 'pointer' : 'default',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onClick={() => handleItemClick(item)}
+                  onMouseEnter={(e) => {
+                    if (isClickable) {
+                      e.currentTarget.style.transform = 'translateX(8px) scale(1.01)';
+                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(124, 58, 237, 0.15)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateX(0) scale(1)';
+                    e.currentTarget.style.boxShadow = '';
+                  }}
+                >
+                  {config.showNumbers && (
+                    <Table.Td>
+                      <Text fw={600}>{index + 1}</Text>
+                    </Table.Td>
+                  )}
+                  {config.columns.map((column) => {
+                    const value = column.getValue(item);
+                    const rendered = column.render ? column.render(value, item) : value;
+                    return (
+                      <Table.Td key={column.key}>
+                        <Text fw={600} size="sm">
+                          {rendered}
+                        </Text>
+                      </Table.Td>
+                    );
+                  })}
+                  {config.getItemStatus && status && (
+                    <Table.Td>
+                      <Badge
+                        color="violet"
+                        variant="filled"
+                        size="lg"
+                        radius="xl"
+                        style={{
+                          background: status.color,
+                          textTransform: 'uppercase',
+                          letterSpacing: 0.8,
+                        }}
+                      >
+                        {status.label}
+                      </Badge>
+                    </Table.Td>
+                  )}
+                </Table.Tr>
+              );
+            })}
+          </Table.Tbody>
+        </Table>
+      </Box>
+    );
+  };
+
+  const renderListLayout = () => (
+    <Stack gap="lg">
+      {sortedItems.map((item, index) => {
+        const status = config.getItemStatus?.(item);
+        const isClickable = !!(config.onItemClick || renderItemView);
+        return (
+          <Card
+            key={config.getItemKey(item)}
+            shadow="sm"
+            padding="xl"
+            radius="lg"
+            withBorder
+            style={{
+              cursor: isClickable ? 'pointer' : 'default',
+              transition: 'all 0.3s ease',
+              borderColor: 'transparent',
+              background: 'linear-gradient(white, white) padding-box, linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(139, 92, 246, 0.1)) border-box',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+            onClick={() => handleItemClick(item)}
+            onMouseEnter={(e) => {
+              if (isClickable) {
+                e.currentTarget.style.transform = 'translateX(12px) scale(1.01)';
+                e.currentTarget.style.boxShadow = '0 12px 32px rgba(124, 58, 237, 0.15)';
+                e.currentTarget.style.background = 'linear-gradient(white, white) padding-box, linear-gradient(135deg, #7c3aed, #8b5cf6, #d946ef) border-box';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateX(0) scale(1)';
+              e.currentTarget.style.boxShadow = '';
+              e.currentTarget.style.background = 'linear-gradient(white, white) padding-box, linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(139, 92, 246, 0.1)) border-box';
+            }}
+          >
+            <Group align="center" wrap="nowrap">
+              {config.showNumbers && (
+                <Box
+                  style={{
+                    flexShrink: 0,
+                    width: 48,
+                    height: 48,
+                    borderRadius: 16,
+                    background: 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #d946ef 100%)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    fontSize: '1.05rem',
+                    boxShadow: '0 6px 16px rgba(124, 58, 237, 0.35)',
+                    transition: 'transform 0.3s ease',
+                  }}
+                >
+                  {index + 1}
+                </Box>
+              )}
+              <Group style={{ flex: 1 }} gap="xl" wrap="wrap">
+                {config.columns.map((column) => {
+                  const value = column.getValue(item);
+                  const rendered = column.render ? column.render(value, item) : value;
+                  return (
+                    <Box key={column.key}>
+                      <Text size="xs" fw={800} c="dimmed" tt="uppercase" style={{ letterSpacing: 1.2, marginBottom: 4 }}>
+                        {column.label}:
+                      </Text>
+                      <Text size="md" fw={600}>
+                        {rendered}
+                      </Text>
+                    </Box>
+                  );
+                })}
+              </Group>
+              {status && (
+                <Badge
+                  color="violet"
+                  variant="filled"
+                  size="lg"
+                  radius="xl"
+                  style={{
+                    flexShrink: 0,
+                    background: status.color,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  {status.label}
+                </Badge>
+              )}
+            </Group>
+          </Card>
+        );
+      })}
+    </Stack>
   );
 
   return (
-    <div className={`${styles.genericList} ${className}`}>
-      {(title || description) && (
-        <div className={styles.genericListHeader}>
-          {title && <h3>{title}</h3>}
-          {description && <p className={styles.description}>{description}</p>}
-        </div>
-      )}
+    <Box className={className}>
+      <Stack gap="xl">
+        {(title || description) && (
+          <Box mb="md">
+            {title && (
+              <Title
+                order={3}
+                style={{
+                  marginBottom: 8,
+                  fontSize: '1.75rem',
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #d946ef 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                {title}
+              </Title>
+            )}
+            {description && (
+              <Text c="dimmed" size="sm" style={{ lineHeight: 1.5 }}>
+                {description}
+              </Text>
+            )}
+          </Box>
+        )}
 
-      {config.searchable && (
-        <div className={styles.searchBox}>
-          <input
-            type="text"
+        {config.searchable && (
+          <TextInput
             placeholder="Search..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={styles.searchInput}
+            onChange={(e) => setSearchQuery(e.currentTarget.value)}
+            leftSection={<IconSearch size={18} />}
+            size="md"
+            radius="md"
+            styles={{
+              input: {
+                border: '2px solid transparent',
+                background: 'linear-gradient(white, white) padding-box, linear-gradient(135deg, #7c3aed, #8b5cf6) border-box',
+                transition: 'all 0.3s ease',
+                '&:focus': {
+                  boxShadow: '0 8px 24px rgba(124, 58, 237, 0.15), 0 0 0 4px rgba(124, 58, 237, 0.1)',
+                  transform: 'translateY(-1px)',
+                },
+              },
+            }}
           />
-          <span className={styles.searchIcon}>🔍</span>
-        </div>
-      )}
+        )}
 
-      <div className={styles.itemsCount}>
-        {sortedItems.length} {sortedItems.length === 1 ? 'item' : 'items'}
-      </div>
+        <Text c="dimmed" size="sm" fw={600} style={{ letterSpacing: 0.3 }}>
+          {sortedItems.length} {sortedItems.length === 1 ? 'item' : 'items'}
+        </Text>
 
-      {sortedItems.length === 0 ? (
-        <div className={styles.emptyState}>{emptyMessage}</div>
-      ) : (
-        <>
-          {layout === 'grid' && renderGridLayout()}
-          {layout === 'table' && renderTableLayout()}
-          {layout === 'list' && renderListLayout()}
-        </>
-      )}
-    </div>
+        {sortedItems.length === 0 ? (
+          <Box
+            style={{
+              textAlign: 'center',
+              padding: '64px 24px',
+              color: '#94a3b8',
+              fontSize: '1.05rem',
+              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+              borderRadius: 16,
+              border: '2px dashed #cbd5e1',
+            }}
+          >
+            {emptyMessage}
+          </Box>
+        ) : (
+          <>
+            {layout === 'grid' && renderGridLayout()}
+            {layout === 'table' && renderTableLayout()}
+            {layout === 'list' && renderListLayout()}
+          </>
+        )}
+      </Stack>
+    </Box>
   );
 };
 

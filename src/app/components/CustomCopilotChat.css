@@ -434,6 +434,77 @@
   color: #6b7280;
 }
 
+/* Suggestions Above Input */
+.suggestions-container {
+  padding: 0.75rem 1.5rem 0;
+  background: #ffffff;
+  border-top: 1px solid #f9fafb;
+  animation: slideUp 0.3s ease;
+}
+
+.suggestions-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.suggestion-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #fbbf24;
+}
+
+.suggestions-list {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.suggestion-item:hover {
+  background: #ffffff;
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.suggestion-item .suggestion-icon {
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+}
+
+.suggestion-item:hover .suggestion-icon {
+  color: #667eea;
+}
+
+.suggestion-text {
+  font-weight: 500;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .chat-header {

@@ -7,7 +7,7 @@
     "dev:debug": "LOG_LEVEL=debug pnpm run dev",
     "dev:agent": "cd backend && uv run python -m langgraph_cli dev --port 8123 --no-browser",
     "dev:api": "cd backend && uv run python -m uvicorn api.main:app --reload --port 8000",
-    "dev:ui": "next dev --turbopack",
+    "dev:ui": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -19,10 +19,14 @@
     "@copilotkit/react-ui": "1.50.1",
     "@copilotkit/runtime": "1.50.1",
     "@mantine/core": "8.3.11",
+    "@mantine/dates": "^8.3.13",
     "@mantine/hooks": "8.3.11",
+    "@tabler/icons-react": "^3.36.1",
+    "dayjs": "^1.11.19",
     "next": "16.1.1",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "styled-jsx": "^5.1.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

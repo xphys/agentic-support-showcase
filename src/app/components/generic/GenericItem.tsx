@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Card, Image, Text, Badge, Button, Group, Stack, Title, Paper, Grid, Box } from '@mantine/core';
 
 export interface ItemField<T = any> {
   /** Unique key for the field */
@@ -84,542 +85,245 @@ const GenericItem = <T extends Record<string, any>>({
 
     if (field.badge) {
       return (
-        <span
-          className="field-badge"
-          style={{ background: field.badgeColor || '#667eea' }}
-        >
+        <Badge color={field.badgeColor || 'violet'} size="lg" radius="md" variant="filled">
           {rendered}
-        </span>
+        </Badge>
       );
     }
 
-    return <div className="field-value">{rendered}</div>;
+    return <Text size="sm" fw={600}>{rendered}</Text>;
   };
 
-  const getVariantClass = (variant?: string) => {
+  const getButtonVariant = (variant?: string): any => {
     switch (variant) {
       case 'primary':
-        return 'btn-primary';
+        return 'gradient';
       case 'secondary':
-        return 'btn-secondary';
+        return 'light';
       case 'danger':
-        return 'btn-danger';
+        return 'filled';
       case 'success':
-        return 'btn-success';
+        return 'filled';
       default:
-        return 'btn-primary';
+        return 'gradient';
+    }
+  };
+
+  const getButtonColor = (variant?: string) => {
+    switch (variant) {
+      case 'danger':
+        return 'red';
+      case 'success':
+        return 'green';
+      default:
+        return 'violet';
     }
   };
 
   const renderCardLayout = () => (
-    <div className="item-card">
+    <Card shadow="lg" radius="lg" withBorder className={className}>
       {imageUrl && (
-        <div className="item-image-container">
-          <img src={imageUrl} alt={title || 'Item'} className="item-image" />
-        </div>
+        <Card.Section>
+          <Image src={imageUrl} alt={title || 'Item'} height={240} fit="cover" />
+        </Card.Section>
       )}
 
-      <div className="item-card-body">
+      <Stack gap="md" mt={imageUrl ? 'md' : 0}>
         {(title || subtitle) && (
-          <div className="item-header">
-            {title && <h2 className="item-title">{title}</h2>}
-            {subtitle && <p className="item-subtitle">{subtitle}</p>}
-          </div>
+          <Box>
+            {title && <Title order={2} size="h2" mb="xs" c="violet.7">{title}</Title>}
+            {subtitle && <Text c="dimmed" size="sm">{subtitle}</Text>}
+          </Box>
         )}
 
-        <div className="item-fields">
+        <Stack gap="lg">
           {Object.entries(sections).map(([section, sectionFields]) => (
-            <div key={section} className="field-section">
+            <Box key={section}>
               {section !== 'default' && (
-                <h4 className="section-title">{section}</h4>
+                <Title order={4} size="h5" mb="xs" c="violet">{section}</Title>
               )}
-              <div className="field-grid">
+              <Grid gutter="md">
                 {sectionFields.map((field) => (
-                  <div
+                  <Grid.Col
                     key={field.key}
-                    className={`field-item ${field.highlight ? 'highlight' : ''} span-${field.span || 1}`}
+                    span={{ base: 12, sm: field.span ? (12 / field.span) as any : 6 }}
                   >
-                    <label className="field-label">{field.label}</label>
-                    {renderFieldValue(field)}
-                  </div>
+                    <Paper p="md" withBorder={field.highlight} bg={field.highlight ? 'violet.0' : undefined} radius="md">
+                      <Text size="xs" tt="uppercase" fw={700} c="dimmed" mb={4}>
+                        {field.label}
+                      </Text>
+                      {renderFieldValue(field)}
+                    </Paper>
+                  </Grid.Col>
                 ))}
-              </div>
-            </div>
+              </Grid>
+            </Box>
           ))}
-        </div>
-      </div>
-    </div>
+        </Stack>
+
+        {actions && actions.length > 0 && (
+          <Group gap="md" mt="md">
+            {actions.map((action, index) => (
+              <Button
+                key={index}
+                onClick={action.onClick}
+                variant={getButtonVariant(action.variant)}
+                color={getButtonColor(action.variant)}
+                disabled={action.disabled}
+                leftSection={action.icon}
+                gradient={action.variant === 'primary' || !action.variant ? { from: 'violet', to: 'grape', deg: 135 } : undefined}
+              >
+                {action.label}
+              </Button>
+            ))}
+          </Group>
+        )}
+      </Stack>
+    </Card>
   );
 
   const renderPanelLayout = () => (
-    <div className="item-panel">
-      <div className="panel-header">
-        <div className="panel-header-left">
-          {imageUrl && (
-            <img src={imageUrl} alt={title || 'Item'} className="panel-image" />
-          )}
-          <div>
-            {title && <h2 className="item-title">{title}</h2>}
-            {subtitle && <p className="item-subtitle">{subtitle}</p>}
-          </div>
-        </div>
-
-        {actions && actions.length > 0 && (
-          <div className="panel-actions">
-            {actions.map((action, index) => (
-              <button
-                key={index}
-                onClick={action.onClick}
-                className={`action-btn ${getVariantClass(action.variant)}`}
-                disabled={action.disabled}
-              >
-                {action.icon && <span className="action-icon">{action.icon}</span>}
-                {action.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="panel-body">
-        {Object.entries(sections).map(([section, sectionFields]) => (
-          <div key={section} className="field-section">
-            {section !== 'default' && (
-              <h4 className="section-title">{section}</h4>
+    <Card shadow="lg" radius="lg" withBorder className={className}>
+      <Card.Section withBorder inheritPadding py="md">
+        <Group justify="space-between" align="flex-start" wrap="wrap">
+          <Group>
+            {imageUrl && (
+              <Image src={imageUrl} alt={title || 'Item'} w={80} h={80} radius="md" fit="cover" />
             )}
-            <div className="field-list">
-              {sectionFields.map((field) => (
-                <div
-                  key={field.key}
-                  className={`field-row ${field.highlight ? 'highlight' : ''}`}
+            <Box>
+              {title && <Title order={2} size="h3" c="violet.7">{title}</Title>}
+              {subtitle && <Text c="dimmed" size="sm">{subtitle}</Text>}
+            </Box>
+          </Group>
+
+          {actions && actions.length > 0 && (
+            <Group gap="xs">
+              {actions.map((action, index) => (
+                <Button
+                  key={index}
+                  onClick={action.onClick}
+                  variant={getButtonVariant(action.variant)}
+                  color={getButtonColor(action.variant)}
+                  disabled={action.disabled}
+                  leftSection={action.icon}
+                  size="sm"
+                  gradient={action.variant === 'primary' || !action.variant ? { from: 'violet', to: 'grape', deg: 135 } : undefined}
                 >
-                  <label className="field-label">{field.label}</label>
-                  {renderFieldValue(field)}
-                </div>
+                  {action.label}
+                </Button>
               ))}
-            </div>
-          </div>
+            </Group>
+          )}
+        </Group>
+      </Card.Section>
+
+      <Stack gap="lg" mt="md">
+        {Object.entries(sections).map(([section, sectionFields]) => (
+          <Box key={section}>
+            {section !== 'default' && (
+              <Title order={4} size="h5" mb="xs" c="violet">{section}</Title>
+            )}
+            <Stack gap="sm">
+              {sectionFields.map((field) => (
+                <Group key={field.key} justify="space-between" align="flex-start" wrap="wrap">
+                  <Text size="xs" tt="uppercase" fw={700} c="dimmed">
+                    {field.label}
+                  </Text>
+                  <Box style={{ textAlign: 'right' }}>
+                    {renderFieldValue(field)}
+                  </Box>
+                </Group>
+              ))}
+            </Stack>
+          </Box>
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Card>
   );
 
   const renderDetailsLayout = () => (
-    <div className="item-details">
-      {(title || subtitle || imageUrl) && (
-        <div className="details-header">
-          {imageUrl && (
-            <div className="details-image-container">
-              <img src={imageUrl} alt={title || 'Item'} className="details-image" />
-            </div>
-          )}
-          <div className="details-header-content">
-            {title && <h1 className="details-title">{title}</h1>}
-            {subtitle && <p className="details-subtitle">{subtitle}</p>}
-          </div>
-        </div>
-      )}
+    <Card shadow="lg" radius="lg" withBorder className={className}>
+      <Card.Section
+        withBorder
+        p="xl"
+        style={{
+          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%)',
+          color: 'white'
+        }}
+      >
+        {imageUrl && (
+          <Image
+            src={imageUrl}
+            alt={title || 'Item'}
+            w={140}
+            h={140}
+            radius="lg"
+            mb="md"
+            fit="cover"
+            style={{ border: '4px solid rgba(255, 255, 255, 0.3)' }}
+          />
+        )}
+        {title && <Title order={1} c="white" mb="xs">{title}</Title>}
+        {subtitle && <Text c="white" size="lg" opacity={0.95}>{subtitle}</Text>}
+      </Card.Section>
 
-      <div className="details-body">
+      <Stack gap="xl" mt="xl">
         {Object.entries(sections).map(([section, sectionFields]) => (
-          <div key={section} className="details-section">
+          <Box key={section}>
             {section !== 'default' && (
-              <h3 className="section-title">{section}</h3>
+              <Title order={3} size="h4" mb="md" c="violet">{section}</Title>
             )}
-            <div className="details-grid">
+            <Grid gutter="lg">
               {sectionFields.map((field) => (
-                <div
+                <Grid.Col
                   key={field.key}
-                  className={`details-field ${field.highlight ? 'highlight' : ''} span-${field.span || 1}`}
+                  span={{ base: 12, sm: field.span ? (12 / field.span) as any : 6 }}
                 >
-                  <label className="field-label">{field.label}</label>
-                  {renderFieldValue(field)}
-                </div>
+                  <Paper p="md" withBorder={field.highlight} bg={field.highlight ? 'violet.0' : undefined} radius="md">
+                    <Text size="xs" tt="uppercase" fw={700} c="dimmed" mb={4}>
+                      {field.label}
+                    </Text>
+                    {renderFieldValue(field)}
+                  </Paper>
+                </Grid.Col>
               ))}
-            </div>
-          </div>
+            </Grid>
+          </Box>
         ))}
-      </div>
-    </div>
+      </Stack>
+
+      {actions && actions.length > 0 && (
+        <Group gap="md" mt="xl">
+          {actions.map((action, index) => (
+            <Button
+              key={index}
+              onClick={action.onClick}
+              variant={getButtonVariant(action.variant)}
+              color={getButtonColor(action.variant)}
+              disabled={action.disabled}
+              leftSection={action.icon}
+              gradient={action.variant === 'primary' || !action.variant ? { from: 'violet', to: 'grape', deg: 135 } : undefined}
+            >
+              {action.label}
+            </Button>
+          ))}
+        </Group>
+      )}
+    </Card>
   );
 
   return (
-    <div className={`generic-item ${className}`}>
+    <Box>
       {onBack && (
-        <button onClick={onBack} className="back-button">
-          ← Back
-        </button>
+        <Button onClick={onBack} variant="light" color="violet" mb="md" leftSection="←">
+          Back
+        </Button>
       )}
 
       {layout === 'card' && renderCardLayout()}
       {layout === 'panel' && renderPanelLayout()}
       {layout === 'details' && renderDetailsLayout()}
-
-      {actions && actions.length > 0 && layout !== 'panel' && (
-        <div className="item-actions">
-          {actions.map((action, index) => (
-            <button
-              key={index}
-              onClick={action.onClick}
-              className={`action-btn ${getVariantClass(action.variant)}`}
-              disabled={action.disabled}
-            >
-              {action.icon && <span className="action-icon">{action.icon}</span>}
-              {action.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <style jsx>{`
-        .generic-item {
-          width: 100%;
-        }
-
-        .back-button {
-          margin-bottom: 16px;
-          padding: 8px 16px;
-          background: white;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #374151;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .back-button:hover {
-          background: #f9fafb;
-          border-color: #9ca3af;
-        }
-
-        /* Card Layout */
-        .item-card {
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-
-        .item-image-container {
-          width: 100%;
-          height: 200px;
-          overflow: hidden;
-          background: #f3f4f6;
-        }
-
-        .item-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .item-card-body {
-          padding: 24px;
-        }
-
-        .item-header {
-          margin-bottom: 24px;
-          padding-bottom: 16px;
-          border-bottom: 2px solid #e5e7eb;
-        }
-
-        .item-title {
-          margin: 0 0 8px 0;
-          font-size: 1.75rem;
-          color: #1f2937;
-          font-weight: 700;
-        }
-
-        .item-subtitle {
-          margin: 0;
-          color: #6b7280;
-          font-size: 0.95rem;
-        }
-
-        /* Panel Layout */
-        .item-panel {
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-
-        .panel-header {
-          padding: 24px;
-          background: linear-gradient(to bottom, #f9fafb, #ffffff);
-          border-bottom: 2px solid #e5e7eb;
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-
-        .panel-header-left {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .panel-image {
-          width: 64px;
-          height: 64px;
-          border-radius: 8px;
-          object-fit: cover;
-        }
-
-        .panel-body {
-          padding: 24px;
-        }
-
-        .panel-actions {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        /* Details Layout */
-        .item-details {
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-
-        .details-header {
-          padding: 32px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-        }
-
-        .details-image-container {
-          width: 120px;
-          height: 120px;
-          border-radius: 12px;
-          overflow: hidden;
-          margin-bottom: 16px;
-          border: 4px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .details-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .details-title {
-          margin: 0 0 8px 0;
-          font-size: 2rem;
-          font-weight: 700;
-        }
-
-        .details-subtitle {
-          margin: 0;
-          font-size: 1.1rem;
-          opacity: 0.9;
-        }
-
-        .details-body {
-          padding: 32px;
-        }
-
-        /* Fields */
-        .item-fields,
-        .field-list {
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-        }
-
-        .field-section {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .section-title {
-          margin: 0;
-          font-size: 1.125rem;
-          font-weight: 600;
-          color: #374151;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .field-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 16px;
-        }
-
-        .field-grid .span-2 {
-          grid-column: span 2;
-        }
-
-        .field-grid .span-3 {
-          grid-column: span 3;
-        }
-
-        .field-grid .span-4 {
-          grid-column: span 4;
-        }
-
-        .details-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 24px;
-        }
-
-        .details-section {
-          margin-bottom: 32px;
-        }
-
-        .details-section:last-child {
-          margin-bottom: 0;
-        }
-
-        .field-item,
-        .field-row,
-        .details-field {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .field-item.highlight,
-        .field-row.highlight,
-        .details-field.highlight {
-          background: #f0f9ff;
-          padding: 12px;
-          border-radius: 8px;
-          border-left: 4px solid #667eea;
-        }
-
-        .field-label {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .field-value {
-          font-size: 0.95rem;
-          color: #1f2937;
-          word-break: break-word;
-        }
-
-        .field-badge {
-          display: inline-block;
-          padding: 4px 12px;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: white;
-          text-transform: uppercase;
-        }
-
-        /* Actions */
-        .item-actions {
-          display: flex;
-          gap: 12px;
-          margin-top: 24px;
-          flex-wrap: wrap;
-        }
-
-        .action-btn {
-          padding: 12px 24px;
-          border: none;
-          border-radius: 8px;
-          font-size: 0.95rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .action-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 20px -10px rgba(102, 126, 234, 0.5);
-        }
-
-        .btn-secondary {
-          background: white;
-          color: #374151;
-          border: 2px solid #d1d5db;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-          background: #f9fafb;
-          border-color: #9ca3af;
-        }
-
-        .btn-danger {
-          background: #ef4444;
-          color: white;
-        }
-
-        .btn-danger:hover:not(:disabled) {
-          background: #dc2626;
-        }
-
-        .btn-success {
-          background: #10b981;
-          color: white;
-        }
-
-        .btn-success:hover:not(:disabled) {
-          background: #059669;
-        }
-
-        .action-icon {
-          font-size: 1.1rem;
-        }
-
-        @media (max-width: 768px) {
-          .field-grid,
-          .details-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .field-grid .span-2,
-          .field-grid .span-3,
-          .field-grid .span-4 {
-            grid-column: span 1;
-          }
-
-          .panel-header {
-            flex-direction: column;
-          }
-
-          .panel-header-left {
-            width: 100%;
-          }
-
-          .panel-actions {
-            width: 100%;
-          }
-
-          .action-btn {
-            flex: 1;
-          }
-        }
-      `}</style>
-    </div>
+    </Box>
   );
 };
 

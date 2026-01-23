@@ -3,6 +3,7 @@
 import {
   useCopilotChatInternal,
   useFrontendTool,
+  useCopilotChatSuggestions,
 } from "@copilotkit/react-core";
 import { useState, useRef, useEffect, Fragment } from "react";
 import "./CustomCopilotChat.css";
@@ -75,7 +76,6 @@ function AgenticToolCallMessageWithResults({
         >
           <span
             style={{
-              display: "block",
               width: 36,
               height: 36,
               borderRadius: "50%",
@@ -320,6 +320,7 @@ export function CustomCopilotChat({ className = "" }: CustomCopilotChatProps) {
     setMessages,
     isLoading,
     stopGeneration,
+    suggestions,
   } = useCopilotChatInternal();
 
   // Auto scroll to bottom on new messages
@@ -345,6 +346,11 @@ export function CustomCopilotChat({ className = "" }: CustomCopilotChatProps) {
       content: inputValue,
     });
     setInputValue("");
+  };
+
+  const handleSuggestionClick = (suggestionText: string) => {
+    setInputValue(suggestionText);
+    textareaRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -476,24 +482,38 @@ export function CustomCopilotChat({ className = "" }: CustomCopilotChatProps) {
               Ask me anything about your data or request to view different components.
             </p>
             <div className="suggestion-chips">
-              <button
-                className="suggestion-chip"
-                onClick={() => setInputValue("Show me products")}
-              >
-                Show products
-              </button>
-              <button
-                className="suggestion-chip"
-                onClick={() => setInputValue("Display user list")}
-              >
-                Display users
-              </button>
-              <button
-                className="suggestion-chip"
-                onClick={() => setInputValue("Show order #1001")}
-              >
-                View an order
-              </button>
+              {suggestions && suggestions.length > 0 ? (
+                suggestions.slice(0, 4).map((suggestion: any, idx: number) => (
+                  <button
+                    key={idx}
+                    className="suggestion-chip"
+                    onClick={() => handleSuggestionClick(suggestion.message || suggestion.title || suggestion)}
+                  >
+                    {suggestion.message || suggestion.title || suggestion}
+                  </button>
+                ))
+              ) : (
+                <>
+                  <button
+                    className="suggestion-chip"
+                    onClick={() => setInputValue("Show me products")}
+                  >
+                    Show products
+                  </button>
+                  <button
+                    className="suggestion-chip"
+                    onClick={() => setInputValue("Display user list")}
+                  >
+                    Display users
+                  </button>
+                  <button
+                    className="suggestion-chip"
+                    onClick={() => setInputValue("Show order #1001")}
+                  >
+                    View an order
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ) : (
@@ -647,6 +667,48 @@ export function CustomCopilotChat({ className = "" }: CustomCopilotChatProps) {
           </div>
         )}
       </div>
+
+      {/* Suggestions Above Input */}
+      {!isLoading && messages.length > 0 && suggestions && suggestions.length > 0 && (
+        <div className="suggestions-container">
+          <div className="suggestions-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>Suggestions</span>
+          </div>
+          <div className="suggestions-list">
+            {suggestions.slice(0, 3).map((suggestion: any, idx: number) => (
+              <button
+                key={idx}
+                className="suggestion-item"
+                onClick={() => handleSuggestionClick(suggestion.message || suggestion.title || suggestion)}
+              >
+                <span className="suggestion-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M13 7L9 12l4 5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+                <span className="suggestion-text">
+                  {suggestion.message || suggestion.title || suggestion}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Input Area */}
       <div className="chat-input-container">

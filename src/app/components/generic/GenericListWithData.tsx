@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Box, Stack, Loader, Text, Button, Alert } from "@mantine/core";
 import { DataType, loadListData } from "../../actions/dataActions";
 import FullScreenModal from "../FullScreenModal";
 import GenericList from "./GenericList";
@@ -111,92 +112,66 @@ const GenericListWithData = ({
 
   if (loading) {
     return (
-      <div className={className} style={{ padding: '80px 32px', textAlign: 'center' }}>
-        <div style={{
-          display: 'inline-block',
-          width: '56px',
-          height: '56px',
-          border: '5px solid rgba(99, 102, 241, 0.1)',
-          borderTopColor: '#6366f1',
-          borderBottomColor: '#8b5cf6',
-          borderRadius: '50%',
-          animation: 'spin 0.8s linear infinite',
-          marginBottom: '20px'
-        }}></div>
-        <p style={{
-          fontSize: '1.05rem',
-          fontWeight: '600',
-          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
-        }}>Loading {title || "data"}...</p>
-        <style jsx>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
+      <Box className={className} ta="center" py="xl">
+        <Stack align="center" gap="md">
+          <Loader color="violet" size="xl" />
+          <Text
+            size="lg"
+            fw={600}
+            variant="gradient"
+            gradient={{ from: "violet", to: "grape", deg: 135 }}
+          >
+            Loading {title || "data"}...
+          </Text>
+        </Stack>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <div className={className} style={{
-        padding: '64px 32px',
-        textAlign: 'center',
-        color: '#ef4444',
-        fontWeight: '600',
-        background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-        borderRadius: '20px',
-        border: '2px solid rgba(239, 68, 68, 0.2)'
-      }}>
-        <p>Error: {error}</p>
-      </div>
+      <Box className={className}>
+        <Alert
+          variant="light"
+          color="red"
+          title="Error"
+          radius="md"
+        >
+          {error}
+        </Alert>
+      </Box>
     );
   }
 
   return (
     <>
-      <div style={{ position: 'relative' }}>
+      <Box pos="relative">
         {!hideFullscreenButton && (
-          <button
+          <Button
             onClick={() => setIsFullscreenOpen(true)}
-            style={{
-              position: 'absolute',
-              top: '0',
-              right: '0',
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 18px',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              border: '2px solid rgba(99, 102, 241, 0.2)',
-              borderRadius: '12px',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              color: '#6366f1',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
-            }}
-            aria-label="Open in fullscreen"
-            title="Open in fullscreen"
+            variant="gradient"
+            gradient={{ from: "violet", to: "grape", deg: 135 }}
+            pos="absolute"
+            top={0}
+            right={0}
+            style={{ zIndex: 10 }}
+            leftSection={
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+              </svg>
+            }
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-            </svg>
-            <span>Expand</span>
-          </button>
+            Expand
+          </Button>
         )}
         <GenericList
           items={items}
@@ -208,7 +183,7 @@ const GenericListWithData = ({
           className={className}
           renderItemView={renderItemView}
         />
-      </div>
+      </Box>
 
       <FullScreenModal
         isOpen={isFullscreenOpen}

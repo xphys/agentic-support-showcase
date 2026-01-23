@@ -627,48 +627,58 @@ const GenericComponentsDemo: React.FC = () => {
 
         .demo-controls {
           display: flex;
-          gap: 24px;
-          margin-bottom: 24px;
-          padding: 16px;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          gap: 28px;
+          margin-bottom: 32px;
+          padding: 24px;
+          background: linear-gradient(135deg, #ffffff 0%, #fefeff 100%);
+          border-radius: 20px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
           flex-wrap: wrap;
+          border: 1px solid rgba(148, 163, 184, 0.1);
         }
 
         .control-group {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 12px;
         }
 
         .control-label {
-          font-weight: 600;
-          color: #6b7280;
-          font-size: 0.875rem;
+          font-weight: 700;
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          font-size: 0.9rem;
+          letter-spacing: 0.3px;
         }
 
         .demo-btn {
-          padding: 8px 16px;
-          background: white;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
+          padding: 10px 20px;
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+          border: 2px solid rgba(99, 102, 241, 0.2);
+          border-radius: 12px;
           font-size: 0.875rem;
-          font-weight: 500;
+          font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s ease;
-          color: #374151;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          color: #6366f1;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         }
 
         .demo-btn:hover {
-          border-color: #667eea;
-          background: #f9fafb;
+          border-color: #6366f1;
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
         }
 
         .demo-btn.active {
-          background: #667eea;
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
           color: white;
-          border-color: #667eea;
+          border-color: transparent;
+          box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+          transform: translateY(-2px);
         }
 
         .demo-content {

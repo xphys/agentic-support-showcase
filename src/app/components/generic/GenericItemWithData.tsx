@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Card, Stack, Box, Text, Title, Loader, Alert, Button, Group, Badge, Grid, Image } from "@mantine/core";
 import { DataType, loadItemData } from "../../actions/dataActions";
 import FullScreenModal from "../FullScreenModal";
 
@@ -126,30 +127,32 @@ const GenericItemWithData = ({
 
     if (field.badge) {
       return (
-        <span
-          className="field-badge"
-          style={{ background: field.badgeColor || "#667eea" }}
+        <Badge
+          color={field.badgeColor || "violet"}
+          variant="filled"
+          size="sm"
+          style={{ textTransform: "uppercase" }}
         >
           {rendered}
-        </span>
+        </Badge>
       );
     }
 
-    return <div className="field-value">{rendered}</div>;
+    return <Text size="sm" c="gray.9">{rendered}</Text>;
   };
 
-  const getVariantClass = (variant?: string) => {
+  const getMantineButtonProps = (variant?: string): { color: string; variant: "filled" | "outline" } => {
     switch (variant) {
       case "primary":
-        return "btn-primary";
+        return { color: "violet", variant: "filled" };
       case "secondary":
-        return "btn-secondary";
+        return { color: "gray", variant: "outline" };
       case "danger":
-        return "btn-danger";
+        return { color: "red", variant: "filled" };
       case "success":
-        return "btn-success";
+        return { color: "green", variant: "filled" };
       default:
-        return "btn-primary";
+        return { color: "violet", variant: "filled" };
     }
   };
 
@@ -160,41 +163,63 @@ const GenericItemWithData = ({
     const imageUrl = getImageUrl?.(item);
 
     return (
-      <div className="item-card">
+      <Card shadow="sm" radius="md" withBorder>
         {imageUrl && (
-          <div className="item-image-container">
-            <img src={imageUrl} alt={title || "Item"} className="item-image" />
-          </div>
+          <Card.Section>
+            <Image
+              src={imageUrl}
+              alt={title || "Item"}
+              height={200}
+              fit="cover"
+            />
+          </Card.Section>
         )}
 
-        <div className="item-card-body">
+        <Stack gap="md" mt={imageUrl ? "md" : 0}>
           {(title || subtitle) && (
-            <div className="item-header">
-              {title && <h2 className="item-title">{title}</h2>}
-              {subtitle && <p className="item-subtitle">{subtitle}</p>}
-            </div>
+            <Box pb="md" style={{ borderBottom: "2px solid var(--mantine-color-gray-2)" }}>
+              {title && <Title order={2} size="h2" c="gray.9">{title}</Title>}
+              {subtitle && <Text c="gray.6" size="sm" mt="xs">{subtitle}</Text>}
+            </Box>
           )}
 
-          <div className="item-fields">
+          <Stack gap="lg">
             {Object.entries(sections).map(([section, sectionFields]) => (
-              <div key={section} className="field-section">
-                {section !== "default" && <h4 className="section-title">{section}</h4>}
-                <div className="field-grid">
+              <Box key={section}>
+                {section !== "default" && (
+                  <Title order={4} size="h4" c="gray.7" pb="xs" mb="md" style={{ borderBottom: "1px solid var(--mantine-color-gray-2)" }}>
+                    {section}
+                  </Title>
+                )}
+                <Grid gutter="md">
                   {sectionFields.map((field) => (
-                    <div
+                    <Grid.Col
                       key={field.key}
-                      className={`field-item ${field.highlight ? "highlight" : ""} span-${field.span || 1}`}
+                      span={{ base: 12, sm: field.span ? (12 / 4) * field.span : 3 }}
                     >
-                      <label className="field-label">{field.label}</label>
-                      {renderFieldValue(field)}
-                    </div>
+                      <Box
+                        p={field.highlight ? "md" : 0}
+                        bg={field.highlight ? "blue.0" : undefined}
+                        style={field.highlight ? {
+                          borderRadius: "8px",
+                          borderLeft: "4px solid var(--mantine-color-violet-6)"
+                        } : undefined}
+                      >
+                        <Text size="xs" fw={600} c="gray.6" tt="uppercase" style={{ letterSpacing: "0.5px" }}>
+                          {field.label}
+                        </Text>
+                        <Box mt={6}>
+                          {renderFieldValue(field)}
+                        </Box>
+                      </Box>
+                    </Grid.Col>
                   ))}
-                </div>
-              </div>
+                </Grid>
+              </Box>
             ))}
-          </div>
-        </div>
-      </div>
+          </Stack>
+        </Stack>
+      </Card>
     );
   };
 
@@ -206,52 +231,83 @@ const GenericItemWithData = ({
     const actions = getActions?.(item);
 
     return (
-      <div className="item-panel">
-        <div className="panel-header">
-          <div className="panel-header-left">
-            {imageUrl && <img src={imageUrl} alt={title || "Item"} className="panel-image" />}
-            <div>
-              {title && <h2 className="item-title">{title}</h2>}
-              {subtitle && <p className="item-subtitle">{subtitle}</p>}
-            </div>
-          </div>
+      <Card shadow="sm" radius="md" withBorder>
+        <Box
+          p="lg"
+          bg="gray.0"
+          style={{ borderBottom: "2px solid var(--mantine-color-gray-2)" }}
+        >
+          <Group justify="space-between" align="flex-start" wrap="wrap">
+            <Group gap="md">
+              {imageUrl && (
+                <Image
+                  src={imageUrl}
+                  alt={title || "Item"}
+                  width={64}
+                  height={64}
+                  radius="md"
+                  fit="cover"
+                />
+              )}
+              <Box>
+                {title && <Title order={2} size="h2" c="gray.9">{title}</Title>}
+                {subtitle && <Text c="gray.6" size="sm" mt="xs">{subtitle}</Text>}
+              </Box>
+            </Group>
 
-          {actions && actions.length > 0 && (
-            <div className="panel-actions">
-              {actions.map((action, index) => (
-                <button
-                  key={index}
-                  onClick={action.onClick}
-                  className={`action-btn ${getVariantClass(action.variant)}`}
-                  disabled={action.disabled}
-                >
-                  {action.icon && <span className="action-icon">{action.icon}</span>}
-                  {action.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            {actions && actions.length > 0 && (
+              <Group gap="xs" wrap="wrap">
+                {actions.map((action, index) => {
+                  const buttonProps = getMantineButtonProps(action.variant);
+                  return (
+                    <Button
+                      key={index}
+                      onClick={action.onClick}
+                      disabled={action.disabled}
+                      leftSection={action.icon}
+                      {...buttonProps}
+                    >
+                      {action.label}
+                    </Button>
+                  );
+                })}
+              </Group>
+            )}
+          </Group>
+        </Box>
 
-        <div className="panel-body">
+        <Stack gap="lg" p="lg">
           {Object.entries(sections).map(([section, sectionFields]) => (
-            <div key={section} className="field-section">
-              {section !== "default" && <h4 className="section-title">{section}</h4>}
-              <div className="field-list">
+            <Box key={section}>
+              {section !== "default" && (
+                <Title order={4} size="h4" c="gray.7" pb="xs" mb="md" style={{ borderBottom: "1px solid var(--mantine-color-gray-2)" }}>
+                  {section}
+                </Title>
+              )}
+              <Stack gap="md">
                 {sectionFields.map((field) => (
-                  <div
+                  <Box
                     key={field.key}
-                    className={`field-row ${field.highlight ? "highlight" : ""}`}
+                    p={field.highlight ? "md" : 0}
+                    bg={field.highlight ? "blue.0" : undefined}
+                    style={field.highlight ? {
+                      borderRadius: "8px",
+                      borderLeft: "4px solid var(--mantine-color-violet-6)"
+                    } : undefined}
                   >
-                    <label className="field-label">{field.label}</label>
-                    {renderFieldValue(field)}
-                  </div>
+                    <Text size="xs" fw={600} c="gray.6" tt="uppercase" style={{ letterSpacing: "0.5px" }}>
+                      {field.label}
+                    </Text>
+                    <Box mt={6}>
+                      {renderFieldValue(field)}
+                    </Box>
+                  </Box>
                 ))}
-              </div>
-            </div>
+              </Stack>
+            </Box>
           ))}
-        </div>
-      </div>
+        </Stack>
+      </Card>
     );
   };
 
@@ -262,163 +318,143 @@ const GenericItemWithData = ({
     const imageUrl = getImageUrl?.(item);
 
     return (
-      <div className="item-details">
+      <Card shadow="sm" radius="md" withBorder>
         {(title || subtitle || imageUrl) && (
-          <div className="details-header">
+          <Box
+            p="xl"
+            style={{
+              background: "linear-gradient(135deg, var(--mantine-color-violet-6) 0%, var(--mantine-color-grape-7) 100%)",
+              color: "white"
+            }}
+          >
             {imageUrl && (
-              <div className="details-image-container">
-                <img src={imageUrl} alt={title || "Item"} className="details-image" />
-              </div>
+              <Box mb="md">
+                <Image
+                  src={imageUrl}
+                  alt={title || "Item"}
+                  width={120}
+                  height={120}
+                  radius="md"
+                  fit="cover"
+                  style={{ border: "4px solid rgba(255, 255, 255, 0.3)" }}
+                />
+              </Box>
             )}
-            <div className="details-header-content">
-              {title && <h1 className="details-title">{title}</h1>}
-              {subtitle && <p className="details-subtitle">{subtitle}</p>}
-            </div>
-          </div>
+            <Box>
+              {title && <Title order={1} size="h1" c="white">{title}</Title>}
+              {subtitle && <Text size="lg" c="white" opacity={0.9} mt="xs">{subtitle}</Text>}
+            </Box>
+          </Box>
         )}
 
-        <div className="details-body">
+        <Stack gap="xl" p="xl">
           {Object.entries(sections).map(([section, sectionFields]) => (
-            <div key={section} className="details-section">
-              {section !== "default" && <h3 className="section-title">{section}</h3>}
-              <div className="details-grid">
+            <Box key={section}>
+              {section !== "default" && (
+                <Title order={3} size="h3" c="gray.7" pb="xs" mb="lg" style={{ borderBottom: "1px solid var(--mantine-color-gray-2)" }}>
+                  {section}
+                </Title>
+              )}
+              <Grid gutter="lg">
                 {sectionFields.map((field) => (
-                  <div
+                  <Grid.Col
                     key={field.key}
-                    className={`details-field ${field.highlight ? "highlight" : ""} span-${field.span || 1}`}
+                    span={{ base: 12, sm: 6 }}
                   >
-                    <label className="field-label">{field.label}</label>
-                    {renderFieldValue(field)}
-                  </div>
+                    <Box
+                      p={field.highlight ? "md" : 0}
+                      bg={field.highlight ? "blue.0" : undefined}
+                      style={field.highlight ? {
+                        borderRadius: "8px",
+                        borderLeft: "4px solid var(--mantine-color-violet-6)"
+                      } : undefined}
+                    >
+                      <Text size="xs" fw={600} c="gray.6" tt="uppercase" style={{ letterSpacing: "0.5px" }}>
+                        {field.label}
+                      </Text>
+                      <Box mt={6}>
+                        {renderFieldValue(field)}
+                      </Box>
+                    </Box>
+                  </Grid.Col>
                 ))}
-              </div>
-            </div>
+              </Grid>
+            </Box>
           ))}
-        </div>
-      </div>
+        </Stack>
+      </Card>
     );
   };
 
   if (loading) {
     return (
-      <div className={`generic-item ${className}`}>
+      <Box className={className} w="100%">
         {onBack && (
-          <button onClick={onBack} className="back-button">
-            ← Back
-          </button>
+          <Button
+            onClick={onBack}
+            variant="gradient"
+            gradient={{ from: "violet", to: "grape", deg: 135 }}
+            leftSection="←"
+            mb="md"
+          >
+            Back
+          </Button>
         )}
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Loading item details...</p>
-        </div>
-        <style jsx>
-          {`
-          .generic-item {
-            width: 100%;
-          }
-
-          .back-button {
-            margin-bottom: 16px;
-            padding: 8px 16px;
-            background: white;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-            cursor: pointer;
-            transition: all 0.2s ease;
-          }
-
-          .back-button:hover {
-            background: #f9fafb;
-            border-color: #9ca3af;
-          }
-
-          .loading-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 64px 24px;
-            color: #6b7280;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          }
-
-          .loading-spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #e5e7eb;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 16px;
-          }
-
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-
-          .loading-state p {
-            margin: 0;
-            font-size: 1rem;
-            font-weight: 500;
-          }
-        `}
-        </style>
-      </div>
+        <Card
+          shadow="md"
+          radius="lg"
+          p="xl"
+          style={{
+            background: "linear-gradient(135deg, var(--mantine-color-gray-0) 0%, var(--mantine-color-gray-1) 100%)",
+            border: "2px dashed var(--mantine-color-violet-2)"
+          }}
+        >
+          <Stack align="center" gap="md" py="xl">
+            <Loader color="violet" size="xl" />
+            <Text
+              size="lg"
+              fw={600}
+              variant="gradient"
+              gradient={{ from: "violet", to: "grape", deg: 135 }}
+            >
+              Loading item details...
+            </Text>
+          </Stack>
+        </Card>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <div className={`generic-item ${className}`}>
+      <Box className={className} w="100%">
         {onBack && (
-          <button onClick={onBack} className="back-button">
-            ← Back
-          </button>
+          <Button
+            onClick={onBack}
+            variant="gradient"
+            gradient={{ from: "violet", to: "grape", deg: 135 }}
+            leftSection="←"
+            mb="md"
+          >
+            Back
+          </Button>
         )}
-        <div className="error-state">
-          <p>Error: {error}</p>
-        </div>
-        <style jsx>
-          {`
-          .generic-item {
-            width: 100%;
-          }
-
-          .back-button {
-            margin-bottom: 16px;
-            padding: 8px 16px;
-            background: white;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-            cursor: pointer;
-            transition: all 0.2s ease;
-          }
-
-          .back-button:hover {
-            background: #f9fafb;
-            border-color: #9ca3af;
-          }
-
-          .error-state {
-            padding: 48px 24px;
-            text-align: center;
-            color: #ef4444;
-            font-weight: 500;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          }
-        `}
-        </style>
-      </div>
+        <Alert
+          variant="light"
+          color="red"
+          title="Error"
+          radius="lg"
+          p="xl"
+          styles={{
+            root: {
+              background: "linear-gradient(135deg, var(--mantine-color-red-0) 0%, var(--mantine-color-red-1) 100%)",
+              border: "2px solid var(--mantine-color-red-2)"
+            }
+          }}
+        >
+          <Text fw={600}>{error}</Text>
+        </Alert>
+      </Box>
     );
   }
 
@@ -426,37 +462,44 @@ const GenericItemWithData = ({
 
   return (
     <>
-      <div className={`generic-item ${className}`}>
+      <Box className={className} w="100%">
         {(onBack || !hideFullscreenButton) && (
-          <div className="item-header-controls">
+          <Group justify="space-between" mb="md" wrap="wrap">
             {onBack && (
-              <button onClick={onBack} className="back-button">
-                ← Back
-              </button>
+              <Button
+                onClick={onBack}
+                variant="gradient"
+                gradient={{ from: "violet", to: "grape", deg: 135 }}
+                leftSection="←"
+              >
+                Back
+              </Button>
             )}
             {!hideFullscreenButton && (
-              <button
-                className="fullscreen-button"
+              <Button
                 onClick={() => setIsFullscreenOpen(true)}
-                aria-label="Open in fullscreen"
-                title="Open in fullscreen"
+                variant="gradient"
+                gradient={{ from: "violet", to: "grape", deg: 135 }}
+                leftSection={
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                  </svg>
+                }
+                style={{ marginLeft: onBack ? undefined : "auto" }}
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                </svg>
-                <span>Expand</span>
-              </button>
+                Expand
+              </Button>
             )}
-          </div>
+          </Group>
         )}
 
         {layout === "card" && renderCardLayout()}
@@ -464,417 +507,24 @@ const GenericItemWithData = ({
         {layout === "details" && renderDetailsLayout()}
 
         {actions && actions.length > 0 && layout !== "panel" && (
-          <div className="item-actions">
-            {actions.map((action: ItemAction, index: number) => (
-              <button
-                key={index}
-                onClick={action.onClick}
-                className={`action-btn ${getVariantClass(action.variant)}`}
-                disabled={action.disabled}
-              >
-                {action.icon && <span className="action-icon">{action.icon}</span>}
-                {action.label}
-              </button>
-            ))}
-          </div>
+          <Group gap="md" mt="lg" wrap="wrap">
+            {actions.map((action: ItemAction, index: number) => {
+              const buttonProps = getMantineButtonProps(action.variant);
+              return (
+                <Button
+                  key={index}
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                  leftSection={action.icon}
+                  {...buttonProps}
+                >
+                  {action.label}
+                </Button>
+              );
+            })}
+          </Group>
         )}
-
-        <style jsx>
-          {`
-        .generic-item {
-          width: 100%;
-        }
-
-        .item-header-controls {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 16px;
-        }
-
-        .back-button {
-          padding: 8px 16px;
-          background: white;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #374151;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .back-button:hover {
-          background: #f9fafb;
-          border-color: #9ca3af;
-        }
-
-        .fullscreen-button {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 14px;
-          background: white;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #374151;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          margin-left: auto;
-        }
-
-        .fullscreen-button:hover {
-          background: #f9fafb;
-          border-color: #667eea;
-          color: #667eea;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(102, 126, 234, 0.1);
-        }
-
-        .fullscreen-button svg {
-          flex-shrink: 0;
-        }
-
-        /* Card Layout */
-        .item-card {
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-
-        .item-image-container {
-          width: 100%;
-          height: 200px;
-          overflow: hidden;
-          background: #f3f4f6;
-        }
-
-        .item-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .item-card-body {
-          padding: 24px;
-        }
-
-        .item-header {
-          margin-bottom: 24px;
-          padding-bottom: 16px;
-          border-bottom: 2px solid #e5e7eb;
-        }
-
-        .item-title {
-          margin: 0 0 8px 0;
-          font-size: 1.75rem;
-          color: #1f2937;
-          font-weight: 700;
-        }
-
-        .item-subtitle {
-          margin: 0;
-          color: #6b7280;
-          font-size: 0.95rem;
-        }
-
-        /* Panel Layout */
-        .item-panel {
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-
-        .panel-header {
-          padding: 24px;
-          background: linear-gradient(to bottom, #f9fafb, #ffffff);
-          border-bottom: 2px solid #e5e7eb;
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-
-        .panel-header-left {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .panel-image {
-          width: 64px;
-          height: 64px;
-          border-radius: 8px;
-          object-fit: cover;
-        }
-
-        .panel-body {
-          padding: 24px;
-        }
-
-        .panel-actions {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        /* Details Layout */
-        .item-details {
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-
-        .details-header {
-          padding: 32px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-        }
-
-        .details-image-container {
-          width: 120px;
-          height: 120px;
-          border-radius: 12px;
-          overflow: hidden;
-          margin-bottom: 16px;
-          border: 4px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .details-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .details-title {
-          margin: 0 0 8px 0;
-          font-size: 2rem;
-          font-weight: 700;
-        }
-
-        .details-subtitle {
-          margin: 0;
-          font-size: 1.1rem;
-          opacity: 0.9;
-        }
-
-        .details-body {
-          padding: 32px;
-        }
-
-        /* Fields */
-        .item-fields,
-        .field-list {
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-        }
-
-        .field-section {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .section-title {
-          margin: 0;
-          font-size: 1.125rem;
-          font-weight: 600;
-          color: #374151;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .field-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 16px;
-        }
-
-        .field-grid .span-2 {
-          grid-column: span 2;
-        }
-
-        .field-grid .span-3 {
-          grid-column: span 3;
-        }
-
-        .field-grid .span-4 {
-          grid-column: span 4;
-        }
-
-        .details-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 24px;
-        }
-
-        .details-section {
-          margin-bottom: 32px;
-        }
-
-        .details-section:last-child {
-          margin-bottom: 0;
-        }
-
-        .field-item,
-        .field-row,
-        .details-field {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .field-item.highlight,
-        .field-row.highlight,
-        .details-field.highlight {
-          background: #f0f9ff;
-          padding: 12px;
-          border-radius: 8px;
-          border-left: 4px solid #667eea;
-        }
-
-        .field-label {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .field-value {
-          font-size: 0.95rem;
-          color: #1f2937;
-          word-break: break-word;
-        }
-
-        .field-badge {
-          display: inline-block;
-          padding: 4px 12px;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: white;
-          text-transform: uppercase;
-        }
-
-        /* Actions */
-        .item-actions {
-          display: flex;
-          gap: 12px;
-          margin-top: 24px;
-          flex-wrap: wrap;
-        }
-
-        .action-btn {
-          padding: 12px 24px;
-          border: none;
-          border-radius: 8px;
-          font-size: 0.95rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .action-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 20px -10px rgba(102, 126, 234, 0.5);
-        }
-
-        .btn-secondary {
-          background: white;
-          color: #374151;
-          border: 2px solid #d1d5db;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-          background: #f9fafb;
-          border-color: #9ca3af;
-        }
-
-        .btn-danger {
-          background: #ef4444;
-          color: white;
-        }
-
-        .btn-danger:hover:not(:disabled) {
-          background: #dc2626;
-        }
-
-        .btn-success {
-          background: #10b981;
-          color: white;
-        }
-
-        .btn-success:hover:not(:disabled) {
-          background: #059669;
-        }
-
-        .action-icon {
-          font-size: 1.1rem;
-        }
-
-        @media (max-width: 768px) {
-          .field-grid,
-          .details-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .field-grid .span-2,
-          .field-grid .span-3,
-          .field-grid .span-4 {
-            grid-column: span 1;
-          }
-
-          .panel-header {
-            flex-direction: column;
-          }
-
-          .panel-header-left {
-            width: 100%;
-          }
-
-          .panel-actions {
-            width: 100%;
-          }
-
-          .action-btn {
-            flex: 1;
-          }
-
-          .item-header-controls {
-            flex-wrap: wrap;
-          }
-
-          .fullscreen-button {
-            flex: 1;
-            justify-content: center;
-            margin-left: 0;
-          }
-        }
-      `}
-        </style>
-      </div>
+      </Box>
 
       <FullScreenModal
         isOpen={isFullscreenOpen}

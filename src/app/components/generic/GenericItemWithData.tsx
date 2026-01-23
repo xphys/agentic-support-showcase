@@ -496,7 +496,7 @@ const GenericItemWithData = ({
                 }
                 style={{ marginLeft: onBack ? undefined : "auto" }}
               >
-                Expand
+                Fullscreen
               </Button>
             )}
           </Group>

@@ -170,7 +170,7 @@ const GenericListWithData = ({
               </svg>
             }
           >
-            Expand
+            Fullscreen
           </Button>
         )}
         <GenericList
